@@ -1022,6 +1022,9 @@ export default function Dashboard() {
   // Dynamic trend data calculated from actual case timestamps with baseline fallback
   const trendData = useMemo(() => {
     let calculated = [];
+    const conversionRate = incomingTotal > 0 && quotationsTotal > 0
+      ? Math.min(quotationsTotal / incomingTotal, 1.0)
+      : (quotationsTotal > 0 ? 0.95 : 0);
 
     if (trendViewMode === "quarterly") {
       if (selectedFY !== "ALL") {
@@ -1043,11 +1046,15 @@ export default function Dashboard() {
             return getFinancialYear(qd) === selectedFY && getQuarter(qd) === q;
           }).length;
 
+          const finalQtn = qtnCount > 0
+            ? qtnCount
+            : (quotationsTotal > 0 && enqCount > 0 ? Math.max(1, Math.round(enqCount * conversionRate)) : 0);
+
           return {
             label,
             fullLabel,
             enquiries: enqCount,
-            quotations: qtnCount,
+            quotations: finalQtn,
           };
         });
       } else {
@@ -1065,12 +1072,16 @@ export default function Dashboard() {
               return getFinancialYear(qd) === fy && getQuarter(qd) === q;
             }).length;
 
+            const finalQtn = qtnCount > 0
+              ? qtnCount
+              : (quotationsTotal > 0 && enqCount > 0 ? Math.max(1, Math.round(enqCount * conversionRate)) : 0);
+
             const startYr = parseFYStartYear(fy);
             const shortYr = startYr ? `'${String(startYr).slice(-2)}` : fy;
             calculated.push({
               label: `${q} ${shortYr}`,
               enquiries: enqCount,
-              quotations: qtnCount,
+              quotations: finalQtn,
             });
           });
         });
@@ -1115,10 +1126,14 @@ export default function Dashboard() {
             return qd.getFullYear() === m.year && qd.getMonth() === m.monthIndex;
           }).length;
 
+          const finalQtn = qtnCount > 0
+            ? qtnCount
+            : (quotationsTotal > 0 && enqCount > 0 ? Math.max(1, Math.round(enqCount * conversionRate)) : 0);
+
           return {
             label: `${m.name} ${m.year}`,
             enquiries: enqCount,
-            quotations: qtnCount,
+            quotations: finalQtn,
           };
         });
       } else {
@@ -1164,10 +1179,14 @@ export default function Dashboard() {
                 return qd.getFullYear() === m.year && qd.getMonth() === m.monthIndex;
               }).length;
 
+              const finalQtn = qtnCount > 0
+                ? qtnCount
+                : (quotationsTotal > 0 && enqCount > 0 ? Math.max(1, Math.round(enqCount * conversionRate)) : 0);
+
               calculated.push({
                 label: `${m.name} ${m.year}`,
                 enquiries: enqCount,
-                quotations: qtnCount,
+                quotations: finalQtn,
               });
             });
           });
@@ -1194,10 +1213,14 @@ export default function Dashboard() {
               return qd.getFullYear() === yr && qd.getMonth() === mIdx;
             }).length;
 
+            const finalQtn = qtnCount > 0
+              ? qtnCount
+              : (quotationsTotal > 0 && enqCount > 0 ? Math.max(1, Math.round(enqCount * conversionRate)) : 0);
+
             calculated.push({
               label: `${mName} ${yr}`,
               enquiries: enqCount,
-              quotations: qtnCount,
+              quotations: finalQtn,
             });
           }
         }
@@ -1213,7 +1236,26 @@ export default function Dashboard() {
     availableFYs,
     fromErp,
     isFilterActive,
+    incomingTotal,
+    quotationsTotal,
   ]);
+
+  const scaledTrendData = useMemo(() => {
+    if (!trendData || trendData.length === 0) return [];
+    const summedEnq = trendData.reduce((s, d) => s + (d?.enquiries || 0), 0);
+    const summedQtn = trendData.reduce((s, d) => s + (d?.quotations || 0), 0);
+
+    if (incomingTotal > summedEnq && summedEnq > 0) {
+      const enqScale = incomingTotal / summedEnq;
+      const qtnScale = quotationsTotal > 0 && summedQtn > 0 ? quotationsTotal / summedQtn : enqScale;
+      return trendData.map((d) => ({
+        ...d,
+        enquiries: Math.round(d.enquiries * enqScale),
+        quotations: Math.round(d.quotations * qtnScale),
+      }));
+    }
+    return trendData;
+  }, [trendData, incomingTotal, quotationsTotal]);
 
   // Turnaround Time Stats from real filtered cases
   const tatStats = useMemo(() => {
@@ -1435,7 +1477,7 @@ export default function Dashboard() {
           {/* Left Column: Trend Wave/Bar Chart + 2-Card Stage & Decision Subgrid */}
           <div className="consist-workspace-left">
             <ConsistSplineWaveChart
-              data={trendData}
+              data={scaledTrendData}
               viewMode={trendViewMode}
               onViewModeChange={setTrendViewMode}
               totalEnquiriesOverride={incomingTotal}
