@@ -661,7 +661,7 @@ function PendingEnquiriesStageWiseCard({ allCases = [] }) {
   };
 
   return (
-    <div className="qla-card" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+    <div className="qla-card">
       <div>
         <div className="qla-card-head" style={{ marginBottom: 4 }}>
           <div className="qla-card-title-wrap">
@@ -673,69 +673,103 @@ function PendingEnquiriesStageWiseCard({ allCases = [] }) {
           </Link>
         </div>
 
-      {/* Donut Chart with Numbers Inside the Slices */}
-      <div className="qla-stage-donut-wrapper">
-        <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
-            <Pie
-              data={stageData.items}
-              cx="50%"
-              cy="50%"
-              startAngle={90}
-              endAngle={-270}
-              innerRadius={50}
-              outerRadius={86}
-              paddingAngle={2.5}
-              dataKey="count"
-              label={renderInsideLabel}
-              labelLine={false}
-              onMouseEnter={(_, index) => setActiveStage(stageData.items[index]?.name)}
+        {/* Donut Chart with Numbers Inside the Slices */}
+        <div className="qla-stage-donut-wrapper">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={stageData.items}
+                cx="50%"
+                cy="50%"
+                startAngle={90}
+                endAngle={-270}
+                innerRadius={50}
+                outerRadius={86}
+                paddingAngle={2.5}
+                dataKey="count"
+                label={renderInsideLabel}
+                labelLine={false}
+                onMouseEnter={(_, index) => setActiveStage(stageData.items[index]?.name)}
+                onMouseLeave={() => setActiveStage(null)}
+              >
+                {stageData.items.map((entry) => (
+                  <Cell
+                    key={entry.id}
+                    fill={entry.color}
+                    opacity={activeStage && activeStage !== entry.name ? 0.35 : 1}
+                    stroke={activeStage === entry.name ? "#0f172a" : "#ffffff"}
+                    strokeWidth={activeStage === entry.name ? 2 : 1}
+                    style={{ cursor: "pointer", transition: "all 0.2s ease" }}
+                  />
+                ))}
+              </Pie>
+            </PieChart>
+          </ResponsiveContainer>
+
+          <div className="qla-stage-donut-center">
+            <span className="qla-stage-donut-number">
+              {centerNumber.toLocaleString("en-IN")}
+            </span>
+            <span className="qla-stage-donut-sub">
+              {centerCaption}
+            </span>
+          </div>
+        </div>
+
+        {/* Clean 2-Column Legend with Count Badges (Eliminates Empty Space) */}
+        <div className="qla-stage-legend">
+          {stageData.items.map((it) => (
+            <div
+              key={it.name}
+              className="qla-stage-legend-item"
+              onMouseEnter={() => setActiveStage(it.name)}
               onMouseLeave={() => setActiveStage(null)}
             >
-              {stageData.items.map((entry) => (
-                <Cell
-                  key={entry.id}
-                  fill={entry.color}
-                  opacity={activeStage && activeStage !== entry.name ? 0.35 : 1}
-                  stroke={activeStage === entry.name ? "#0f172a" : "#ffffff"}
-                  strokeWidth={activeStage === entry.name ? 2 : 1}
-                  style={{ cursor: "pointer", transition: "all 0.2s ease" }}
-                />
-              ))}
-            </Pie>
-          </PieChart>
-        </ResponsiveContainer>
-
-        <div className="qla-stage-donut-center">
-          <span className="qla-stage-donut-number">
-            {centerNumber.toLocaleString("en-IN")}
-          </span>
-          <span className="qla-stage-donut-sub">
-            {centerCaption}
-          </span>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
+                <span className="qla-stage-dot" style={{ background: it.color }} />
+                <span className="qla-stage-label">{it.name}</span>
+              </div>
+              <span
+                style={{
+                  fontSize: "0.72rem",
+                  fontWeight: 700,
+                  color: it.color,
+                  background: `${it.color}14`,
+                  padding: "2px 7px",
+                  borderRadius: 6,
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {it.count} {it.count === 1 ? "Case" : "Cases"}
+              </span>
+            </div>
+          ))}
         </div>
-      </div>
 
-      {/* Clean 2-Column Legend (Matching Reference Image Exactly) */}
-      <div className="qla-stage-legend">
-        {stageData.items.map((it) => (
-          <div
-            key={it.name}
-            className="qla-stage-legend-item"
-            onMouseEnter={() => setActiveStage(it.name)}
-            onMouseLeave={() => setActiveStage(null)}
-          >
-            <span className="qla-stage-dot" style={{ background: it.color }} />
-            <span className="qla-stage-label">{it.name}</span>
+        {/* Proportion Bar */}
+        {stageData.total > 0 && (
+          <div style={{ height: 6, borderRadius: 9999, overflow: "hidden", display: "flex", background: "#f1f5f9", margin: "10px 14px 4px" }}>
+            {stageData.items.map((it) => (
+              it.count > 0 ? (
+                <div
+                  key={it.id}
+                  style={{
+                    width: `${(it.count / stageData.total) * 100}%`,
+                    background: it.color,
+                    height: "100%",
+                  }}
+                  title={`${it.name}: ${it.count} (${Math.round((it.count / stageData.total) * 100)}%)`}
+                />
+              ) : null
+            ))}
           </div>
-        ))}
-      </div>
+        )}
       </div>
 
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.72rem", color: "#64748b", borderTop: "1px solid #f1f5f9", paddingTop: 10, marginTop: 12 }}>
         <span>Total Pending: <b style={{ color: "#0f172a" }}>{stageData.total}</b></span>
         <span style={{ color: "#34a853", fontWeight: 700 }}>
-          Human Review Queue: {stageData.items.find(i => i.id === "review")?.count || 58} Cases
+          Human Review Queue: {stageData.items.find((i) => i.id === "review")?.count || 0} Cases
         </span>
       </div>
     </div>
@@ -1727,9 +1761,6 @@ export default function SuperAdminDashboard() {
                   <span className="qla-kpi-val">{metrics.totalEnquiries.toLocaleString("en-IN")}</span>
                   <span className="qla-kpi-label">Total Inflow</span>
                 </div>
-                <div className="qla-kpi-spark-box">
-                  <KpiSparkGraph type="inflow" color="#2563eb" />
-                </div>
               </div>
               <div className="qla-kpi-card-footer">
                 <span>Enquiries received · {periodDeltas.periodLabel}</span>
@@ -1749,9 +1780,6 @@ export default function SuperAdminDashboard() {
                 <div className="qla-kpi-metric-info">
                   <span className="qla-kpi-val">{metrics.pendingInReview.toLocaleString("en-IN")}</span>
                   <span className="qla-kpi-label">Pending / In Review</span>
-                </div>
-                <div className="qla-kpi-spark-box">
-                  <KpiSparkGraph type="pending" color="#d97706" />
                 </div>
               </div>
               <div className="qla-kpi-card-footer">
@@ -1773,9 +1801,6 @@ export default function SuperAdminDashboard() {
                   <span className="qla-kpi-val">{metrics.reviewed.toLocaleString("en-IN")}</span>
                   <span className="qla-kpi-label">Specs Reviewed</span>
                 </div>
-                <div className="qla-kpi-spark-box">
-                  <KpiSparkGraph type="reviewed" color="#16694a" />
-                </div>
               </div>
               <div className="qla-kpi-card-footer">
                 <span>Approved specs · {periodDeltas.periodLabel}</span>
@@ -1796,9 +1821,6 @@ export default function SuperAdminDashboard() {
                   <span className="qla-kpi-val">{metrics.quoted.toLocaleString("en-IN")}</span>
                   <span className="qla-kpi-label">Quotations Quoted</span>
                 </div>
-                <div className="qla-kpi-spark-box">
-                  <KpiSparkGraph type="quoted" color="#9333ea" />
-                </div>
               </div>
               <div className="qla-kpi-card-footer">
                 <span>Conversion rate: {metrics.conversionRate}% · {periodDeltas.periodLabel}</span>
@@ -1815,9 +1837,6 @@ export default function SuperAdminDashboard() {
                 <div className="qla-kpi-metric-info">
                   <span className="qla-kpi-val">{metrics.avgTat}</span>
                   <span className="qla-kpi-label">Turnaround SLA</span>
-                </div>
-                <div className="qla-kpi-spark-box">
-                  <KpiSparkGraph type="sla" color="#e11d48" />
                 </div>
               </div>
               <div className="qla-kpi-card-footer">
@@ -1995,272 +2014,273 @@ export default function SuperAdminDashboard() {
         </div>
 
         {/* ====================================================================
-            5. ROW 2: PIPELINE STAGE VELOCITY & TURNAROUND SLA BY STAGE
+            5. MASONRY ANALYTICS SECTION: STAGE BACKLOG, WORKLOAD & SLA
             ==================================================================== */}
-        <div className="qla-grid-balanced">
-          {/* Pipeline Conversion Funnel */}
-          <div className="qla-card">
-            <div className="qla-card-head" style={{ marginBottom: 14 }}>
-              <div className="qla-card-title-wrap">
-                <h3 className="qla-card-title">Pipeline Conversion Velocity</h3>
-                <p className="qla-card-subtitle">Real-time conversion flow from incoming enquiry to final quotation dispatch</p>
-              </div>
-              <Link to="/cases" style={{ fontSize: "0.78rem", fontWeight: 700, color: "#16694a", textDecoration: "none", display: "flex", alignItems: "center", gap: 3 }}>
-                Case Queue <ChevronRight size={13} />
-              </Link>
-            </div>
+        <div className="qla-masonry-grid">
+          {/* LEFT MASONRY COLUMN: Stage Backlog & Pipeline Conversion */}
+          <div className="qla-masonry-col">
+            {/* Card 1: Pending Enquiries - Stage Wise (exact match to reference UI) */}
+            <PendingEnquiriesStageWiseCard allCases={isFilterActive ? filteredCases : allCases} />
 
-            <div className="qla-simple-stage-list">
-              {pipelineStages.map((st) => (
-                <div key={st.id} className="qla-simple-stage-row">
-                  <div className="qla-simple-stage-head">
-                    <span className="qla-simple-stage-left">
-                      <span style={{ color: st.color, display: "flex", alignItems: "center" }}>{st.icon}</span>
-                      <span className="qla-simple-stage-tag">{st.stage}</span>
-                      <span className="qla-simple-stage-name">{st.name}</span>
-                    </span>
-                    <span className="qla-simple-stage-right">
-                      <b style={{ color: "#0f172a", fontSize: "0.86rem" }}>{st.count.toLocaleString("en-IN")}</b>
-                      <span className="qla-simple-stage-pct" style={{ color: st.color }}>{st.pct}%</span>
-                    </span>
-                  </div>
-                  <div className="qla-simple-bar-bg">
-                    <div
-                      className="qla-simple-bar-fill"
-                      style={{
-                        width: `${Math.min(100, Math.max(8, st.pct))}%`,
-                        background: st.color,
-                      }}
-                    />
-                  </div>
-                  <div className="qla-simple-stage-sub">{st.unit}</div>
-                </div>
-              ))}
-            </div>
-
-            <div className="qla-simple-card-foot">
-              <span>Overall Intake-to-Quote: <b style={{ color: "#16694a" }}>{metrics.conversionRate}%</b></span>
-              <span style={{ color: "#64748b" }}>AI First-Pass Accuracy: <b style={{ color: "#0284c7" }}>94%</b></span>
-            </div>
-          </div>
-
-          {/* Process-wise Turnaround SLA Breakdown with Circular Chart */}
-          <div className="qla-card" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-            <div>
+            {/* Card 2: Pipeline Conversion Funnel */}
+            <div className="qla-card">
               <div className="qla-card-head" style={{ marginBottom: 14 }}>
                 <div className="qla-card-title-wrap">
-                  <h3 className="qla-card-title">Turnaround SLA by Stage</h3>
-                  <p className="qla-card-subtitle">Stage-wise cycle time & SLA benchmark compliance</p>
+                  <h3 className="qla-card-title">Pipeline Conversion Velocity</h3>
+                  <p className="qla-card-subtitle">Real-time conversion flow from incoming enquiry to final quotation dispatch</p>
+                </div>
+                <Link to="/cases" style={{ fontSize: "0.78rem", fontWeight: 700, color: "#16694a", textDecoration: "none", display: "flex", alignItems: "center", gap: 3 }}>
+                  Case Queue <ChevronRight size={13} />
+                </Link>
+              </div>
+
+              <div className="qla-simple-stage-list">
+                {pipelineStages.map((st) => (
+                  <div key={st.id} className="qla-simple-stage-row">
+                    <div className="qla-simple-stage-head">
+                      <span className="qla-simple-stage-left">
+                        <span style={{ color: st.color, display: "flex", alignItems: "center" }}>{st.icon}</span>
+                        <span className="qla-simple-stage-tag">{st.stage}</span>
+                        <span className="qla-simple-stage-name">{st.name}</span>
+                      </span>
+                      <span className="qla-simple-stage-right">
+                        <b style={{ color: "#0f172a", fontSize: "0.86rem" }}>{st.count.toLocaleString("en-IN")}</b>
+                        <span className="qla-simple-stage-pct" style={{ color: st.color }}>{st.pct}%</span>
+                      </span>
+                    </div>
+                    <div className="qla-simple-bar-bg">
+                      <div
+                        className="qla-simple-bar-fill"
+                        style={{
+                          width: `${Math.min(100, Math.max(8, st.pct))}%`,
+                          background: st.color,
+                        }}
+                      />
+                    </div>
+                    <div className="qla-simple-stage-sub">{st.unit}</div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="qla-simple-card-foot">
+                <span>Overall Intake-to-Quote: <b style={{ color: "#16694a" }}>{metrics.conversionRate}%</b></span>
+                <span style={{ color: "#64748b" }}>AI First-Pass Accuracy: <b style={{ color: "#0284c7" }}>94%</b></span>
+              </div>
+            </div>
+          </div>
+
+          {/* RIGHT MASONRY COLUMN: Quotation Engineers Workload & Turnaround SLA */}
+          <div className="qla-masonry-col">
+            {/* Card 3: Quotation Engineers Workload & Capacity (Full List - No Scroll) */}
+            <div className="qla-card">
+              <div>
+                <div className="qla-card-head" style={{ marginBottom: 12, alignItems: "flex-start", flexWrap: "wrap", gap: 10 }}>
+                  <div className="qla-card-title-wrap">
+                    <h3 className="qla-card-title">Quotation Engineers Workload</h3>
+                    <p className="qla-card-subtitle">
+                      Active review queue, domain scope & turnaround velocity across specialists
+                    </p>
+                  </div>
+
+                  <div className="qla-eng-controls">
+                    {/* Domain Filter */}
+                    <select
+                      className="qla-filter-select"
+                      style={{ height: 28, fontSize: "0.72rem", background: "#f8fafc", padding: "0 20px 0 8px", borderRadius: 6, border: "1px solid #e2e8f0" }}
+                      value={engDomainFilter}
+                      onChange={(e) => setEngDomainFilter(e.target.value)}
+                    >
+                      <option value="all">All Domains (9)</option>
+                      <option value="oem">OEM & MRO (3)</option>
+                      <option value="cp">Channel Partner (2)</option>
+                      <option value="epc_project">EPC & Projects (2)</option>
+                      <option value="special">Specialized (2)</option>
+                    </select>
+
+                    <Link to="/cases" style={{ fontSize: "0.76rem", fontWeight: 700, color: "#16694a", textDecoration: "none", display: "flex", alignItems: "center", gap: 3 }}>
+                      Case Queue <ChevronRight size={13} />
+                    </Link>
+                  </div>
                 </div>
 
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span style={{ fontSize: "0.70rem", fontWeight: 700, color: "#16694a", background: "#f0fdf4", padding: "3px 8px", borderRadius: 6, border: "1px solid #bbf7d0" }}>
-                    Target: &lt; 22.0 hrs
-                  </span>
+                {/* De-congested Full List Table with Spacious Layout */}
+                <div style={{ overflow: "hidden", border: "1px solid #f1f5f9", borderRadius: 10 }}>
+                  <table className="qla-matrix-table" style={{ fontSize: "0.76rem", width: "100%" }}>
+                    <thead>
+                      <tr style={{ background: "#f8fafc" }}>
+                        <th style={{ padding: "10px 14px", fontWeight: 700, color: "#475569" }}>Quotation Engineer</th>
+                        <th style={{ padding: "10px 12px", fontWeight: 700, color: "#475569" }}>Domain</th>
+                        <th style={{ padding: "10px 12px", textAlign: "center", fontWeight: 700, color: "#475569" }}>Active Queue</th>
+                        <th style={{ padding: "10px 12px", textAlign: "right", fontWeight: 700, color: "#475569" }}>Avg TAT</th>
+                        <th style={{ padding: "10px 14px", textAlign: "right", fontWeight: 700, color: "#475569" }}>SLA Met</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredEngineers.map((eng) => (
+                        <tr key={eng.code} style={{ borderBottom: "1px solid #f1f5f9", transition: "background 0.15s ease" }}>
+                          <td style={{ padding: "9px 14px" }}>
+                            <div className="qla-matrix-eng-cell" style={{ gap: 9 }}>
+                              <div className="qla-matrix-avatar" style={{ background: eng.avatarBg, width: 24, height: 24, fontSize: "0.64rem", fontWeight: 700 }}>
+                                {eng.code}
+                              </div>
+                              <span style={{ fontWeight: 700, color: "#0f172a", whiteSpace: "nowrap" }}>{eng.name}</span>
+                            </div>
+                          </td>
+                          <td style={{ padding: "9px 12px" }}>
+                            <span className="qla-domain-badge" style={{ fontSize: "0.68rem", padding: "2px 8px", whiteSpace: "nowrap" }}>
+                              {eng.criteria === "DISTRIBUTED PRODUCTS" ? "Distributed" : eng.criteria}
+                            </span>
+                          </td>
+                          <td style={{ padding: "9px 12px", textAlign: "center", whiteSpace: "nowrap" }}>
+                            <span
+                              style={{
+                                display: "inline-block",
+                                background: eng.pending > 3 ? "#fef3c7" : "#eff6ff",
+                                color: eng.pending > 3 ? "#b45309" : "#1e40af",
+                                padding: "2px 10px",
+                                borderRadius: 12,
+                                fontWeight: 700,
+                                fontSize: "0.72rem",
+                                whiteSpace: "nowrap",
+                              }}
+                            >
+                              {eng.pending} {eng.pending === 1 ? "Case" : "Cases"}
+                            </span>
+                          </td>
+                          <td style={{ padding: "9px 12px", textAlign: "right", whiteSpace: "nowrap" }}>
+                            <span style={{ fontWeight: 600, color: "#334155" }}>{eng.avgTat}</span>
+                          </td>
+                          <td style={{ padding: "9px 14px", textAlign: "right", whiteSpace: "nowrap" }}>
+                            <span style={{ fontWeight: 700, color: "#16694a" }}>{eng.slaRate}%</span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </div>
 
-              {/* Circle Chart + Stage Breakdown Side-by-Side */}
-              <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 8 }}>
-                {/* Small Circular Donut Chart */}
-                <div style={{ position: "relative", width: 140, height: 140, flexShrink: 0 }}>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={processSteps}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={42}
-                        outerRadius={65}
-                        paddingAngle={3}
-                        dataKey="duration"
-                      >
-                        {processSteps.map((entry) => (
-                          <Cell
-                            key={entry.id}
-                            fill={entry.color}
-                            stroke="#ffffff"
-                            strokeWidth={2}
-                          />
-                        ))}
-                      </Pie>
-                      <Tooltip
-                        content={({ active, payload }) => {
-                          if (active && payload && payload.length) {
-                            const data = payload[0].payload;
-                            return (
-                              <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: 8, padding: "6px 10px", boxShadow: "0 4px 12px rgba(0,0,0,0.08)", fontSize: "0.72rem" }}>
-                                <b style={{ color: data.color }}>{data.name}</b>
-                                <div style={{ color: "#0f172a", marginTop: 2 }}>Duration: <b>{data.duration} hrs</b></div>
-                                <div style={{ color: "#64748b" }}>Target: &lt; {data.target} hrs ({data.pct}% Met)</div>
-                              </div>
-                            );
-                          }
-                          return null;
-                        }}
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.72rem", color: "#64748b", borderTop: "1px solid #f1f5f9", paddingTop: 10, marginTop: 12 }}>
+                <span>
+                  Total Active Queue: <b style={{ color: "#0f172a" }}>{teamMetrics.totalActive}</b> In-Review Cases across roster
+                </span>
+                <span style={{ color: "#16694a", fontWeight: 700, display: "flex", alignItems: "center", gap: 5 }}>
+                  <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#16694a" }} />
+                  {teamMetrics.totalEngineers} Specialists Active
+                </span>
+              </div>
+            </div>
 
-                  {/* Center Text inside Donut */}
-                  <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", textAlign: "center", pointerEvents: "none" }}>
-                    <span style={{ display: "block", fontSize: "1.1rem", fontWeight: 800, color: "#0f172a", lineHeight: 1 }}>
-                      {totalCycleDuration}h
-                    </span>
-                    <span style={{ fontSize: "0.62rem", fontWeight: 600, color: "#64748b" }}>
-                      Cycle
+            {/* Card 4: Process-wise Turnaround SLA Breakdown with Circular Chart */}
+            <div className="qla-card">
+              <div>
+                <div className="qla-card-head" style={{ marginBottom: 14 }}>
+                  <div className="qla-card-title-wrap">
+                    <h3 className="qla-card-title">Turnaround SLA by Stage</h3>
+                    <p className="qla-card-subtitle">Stage-wise cycle time & SLA benchmark compliance</p>
+                  </div>
+
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span style={{ fontSize: "0.70rem", fontWeight: 700, color: "#16694a", background: "#f0fdf4", padding: "3px 8px", borderRadius: 6, border: "1px solid #bbf7d0" }}>
+                      Target: &lt; 22.0 hrs
                     </span>
                   </div>
                 </div>
 
-                {/* Exact Info Cards */}
-                <div style={{ display: "flex", flexDirection: "column", gap: 7, flex: 1 }}>
-                  {processSteps.map((step) => (
-                    <div
-                      key={step.id}
-                      style={{
-                        padding: "7px 10px",
-                        background: "#f8fafc",
-                        borderRadius: 8,
-                        border: "1px solid #f1f5f9",
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: 2,
-                      }}
-                    >
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        <span style={{ display: "flex", alignItems: "center", gap: 6, fontWeight: 700, fontSize: "0.75rem", color: "#0f172a" }}>
-                          <span style={{ width: 8, height: 8, borderRadius: "50%", background: step.color, flexShrink: 0 }} />
-                          {step.name}
-                        </span>
-                        <span style={{ fontWeight: 800, fontSize: "0.80rem", color: step.color }}>
-                          {step.duration} hrs
-                        </span>
-                      </div>
-                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.66rem", color: "#64748b" }}>
-                        <span>Target: &lt; {step.target} hrs</span>
-                        <span style={{ color: "#16694a", fontWeight: 700 }}>{step.pct}% SLA Met</span>
-                      </div>
+                {/* Circle Chart + Stage Breakdown Side-by-Side */}
+                <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 8 }}>
+                  {/* Small Circular Donut Chart */}
+                  <div style={{ position: "relative", width: 140, height: 140, flexShrink: 0 }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={processSteps}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={42}
+                          outerRadius={65}
+                          paddingAngle={3}
+                          dataKey="duration"
+                        >
+                          {processSteps.map((entry) => (
+                            <Cell
+                              key={entry.id}
+                              fill={entry.color}
+                              stroke="#ffffff"
+                              strokeWidth={2}
+                            />
+                          ))}
+                        </Pie>
+                        <Tooltip
+                          content={({ active, payload }) => {
+                            if (active && payload && payload.length) {
+                              const data = payload[0].payload;
+                              return (
+                                <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: 8, padding: "6px 10px", boxShadow: "0 4px 12px rgba(0,0,0,0.08)", fontSize: "0.72rem" }}>
+                                  <b style={{ color: data.color }}>{data.name}</b>
+                                  <div style={{ color: "#0f172a", marginTop: 2 }}>Duration: <b>{data.duration} hrs</b></div>
+                                  <div style={{ color: "#64748b" }}>Target: &lt; {data.target} hrs ({data.pct}% Met)</div>
+                                </div>
+                              );
+                            }
+                            return null;
+                          }}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+
+                    {/* Center Text inside Donut */}
+                    <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", textAlign: "center", pointerEvents: "none" }}>
+                      <span style={{ display: "block", fontSize: "1.1rem", fontWeight: 800, color: "#0f172a", lineHeight: 1 }}>
+                        {totalCycleDuration}h
+                      </span>
+                      <span style={{ fontSize: "0.62rem", fontWeight: 600, color: "#64748b" }}>
+                        Cycle
+                      </span>
                     </div>
-                  ))}
-                </div>
-              </div>
-            </div>
+                  </div>
 
-            <div className="qla-simple-card-foot">
-              <span>Total Cycle Duration: <b style={{ color: "#0f172a" }}>{totalCycleDuration} hrs</b></span>
-              <span style={{ color: "#16694a", fontWeight: 700, display: "flex", alignItems: "center", gap: 5 }}>
-                <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#16694a" }} />
-                Overall SLA Target: {overallSlaRate}% Met
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* ====================================================================
-            6. ROW 3: PENDING ENQUIRIES (STAGE WISE) & QUOTATION ENGINEERS WORKLOAD
-            ==================================================================== */}
-        <div className="qla-grid-balanced">
-          {/* LEFT: Pending Enquiries - Stage Wise (exact match to user uploaded screenshot) */}
-          <PendingEnquiriesStageWiseCard allCases={isFilterActive ? filteredCases : allCases} />
-
-          {/* RIGHT: Quotation Engineers Workload & Capacity (Full List - No Scroll) */}
-          <div className="qla-card" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-            <div>
-              <div className="qla-card-head" style={{ marginBottom: 12, alignItems: "flex-start", flexWrap: "wrap", gap: 10 }}>
-                <div className="qla-card-title-wrap">
-                  <h3 className="qla-card-title">Quotation Engineers Workload</h3>
-                  <p className="qla-card-subtitle">
-                    Active review queue, domain scope & turnaround velocity across specialists
-                  </p>
-                </div>
-
-                <div className="qla-eng-controls">
-                  {/* Domain Filter */}
-                  <select
-                    className="qla-filter-select"
-                    style={{ height: 28, fontSize: "0.72rem", background: "#f8fafc", padding: "0 20px 0 8px", borderRadius: 6, border: "1px solid #e2e8f0" }}
-                    value={engDomainFilter}
-                    onChange={(e) => setEngDomainFilter(e.target.value)}
-                  >
-                    <option value="all">All Domains (9)</option>
-                    <option value="oem">OEM & MRO (3)</option>
-                    <option value="cp">Channel Partner (2)</option>
-                    <option value="epc_project">EPC & Projects (2)</option>
-                    <option value="special">Specialized (2)</option>
-                  </select>
-
-                  <Link to="/cases" style={{ fontSize: "0.76rem", fontWeight: 700, color: "#16694a", textDecoration: "none", display: "flex", alignItems: "center", gap: 3 }}>
-                    Case Queue <ChevronRight size={13} />
-                  </Link>
-                </div>
-              </div>
-
-              {/* De-congested Full List Table with Spacious Layout */}
-              <div style={{ overflow: "hidden", border: "1px solid #f1f5f9", borderRadius: 10 }}>
-                <table className="qla-matrix-table" style={{ fontSize: "0.76rem", width: "100%" }}>
-                  <thead>
-                    <tr style={{ background: "#f8fafc" }}>
-                      <th style={{ padding: "10px 14px", fontWeight: 700, color: "#475569" }}>Quotation Engineer</th>
-                      <th style={{ padding: "10px 12px", fontWeight: 700, color: "#475569" }}>Domain</th>
-                      <th style={{ padding: "10px 12px", textAlign: "center", fontWeight: 700, color: "#475569" }}>Active Queue</th>
-                      <th style={{ padding: "10px 12px", textAlign: "right", fontWeight: 700, color: "#475569" }}>Avg TAT</th>
-                      <th style={{ padding: "10px 14px", textAlign: "right", fontWeight: 700, color: "#475569" }}>SLA Met</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredEngineers.map((eng) => (
-                      <tr key={eng.code} style={{ borderBottom: "1px solid #f1f5f9", transition: "background 0.15s ease" }}>
-                        <td style={{ padding: "9px 14px" }}>
-                          <div className="qla-matrix-eng-cell" style={{ gap: 9 }}>
-                            <div className="qla-matrix-avatar" style={{ background: eng.avatarBg, width: 24, height: 24, fontSize: "0.64rem", fontWeight: 700 }}>
-                              {eng.code}
-                            </div>
-                            <span style={{ fontWeight: 700, color: "#0f172a", whiteSpace: "nowrap" }}>{eng.name}</span>
-                          </div>
-                        </td>
-                        <td style={{ padding: "9px 12px" }}>
-                          <span className="qla-domain-badge" style={{ fontSize: "0.68rem", padding: "2px 8px", whiteSpace: "nowrap" }}>
-                            {eng.criteria === "DISTRIBUTED PRODUCTS" ? "Distributed" : eng.criteria}
+                  {/* Exact Info Cards */}
+                  <div style={{ display: "flex", flexDirection: "column", gap: 7, flex: 1 }}>
+                    {processSteps.map((step) => (
+                      <div
+                        key={step.id}
+                        style={{
+                          padding: "7px 10px",
+                          background: "#f8fafc",
+                          borderRadius: 8,
+                          border: "1px solid #f1f5f9",
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: 2,
+                        }}
+                      >
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <span style={{ display: "flex", alignItems: "center", gap: 6, fontWeight: 700, fontSize: "0.75rem", color: "#0f172a" }}>
+                            <span style={{ width: 8, height: 8, borderRadius: "50%", background: step.color, flexShrink: 0 }} />
+                            {step.name}
                           </span>
-                        </td>
-                        <td style={{ padding: "9px 12px", textAlign: "center", whiteSpace: "nowrap" }}>
-                          <span
-                            style={{
-                              display: "inline-block",
-                              background: eng.pending > 3 ? "#fef3c7" : "#eff6ff",
-                              color: eng.pending > 3 ? "#b45309" : "#1e40af",
-                              padding: "2px 10px",
-                              borderRadius: 12,
-                              fontWeight: 700,
-                              fontSize: "0.72rem",
-                              whiteSpace: "nowrap",
-                            }}
-                          >
-                            {eng.pending} {eng.pending === 1 ? "Case" : "Cases"}
+                          <span style={{ fontWeight: 800, fontSize: "0.80rem", color: step.color }}>
+                            {step.duration} hrs
                           </span>
-                        </td>
-                        <td style={{ padding: "9px 12px", textAlign: "right", whiteSpace: "nowrap" }}>
-                          <span style={{ fontWeight: 600, color: "#334155" }}>{eng.avgTat}</span>
-                        </td>
-                        <td style={{ padding: "9px 14px", textAlign: "right", whiteSpace: "nowrap" }}>
-                          <span style={{ fontWeight: 700, color: "#16694a" }}>{eng.slaRate}%</span>
-                        </td>
-                      </tr>
+                        </div>
+                        <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.66rem", color: "#64748b" }}>
+                          <span>Target: &lt; {step.target} hrs</span>
+                          <span style={{ color: "#16694a", fontWeight: 700 }}>{step.pct}% SLA Met</span>
+                        </div>
+                      </div>
                     ))}
-                  </tbody>
-                </table>
+                  </div>
+                </div>
               </div>
-            </div>
 
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.72rem", color: "#64748b", borderTop: "1px solid #f1f5f9", paddingTop: 10, marginTop: 12 }}>
-              <span>
-                Total Active Queue: <b style={{ color: "#0f172a" }}>{teamMetrics.totalActive}</b> In-Review Cases across roster
-              </span>
-              <span style={{ color: "#16694a", fontWeight: 700, display: "flex", alignItems: "center", gap: 5 }}>
-                <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#16694a" }} />
-                {teamMetrics.totalEngineers} Specialists Active
-              </span>
+              <div className="qla-simple-card-foot">
+                <span>Total Cycle Duration: <b style={{ color: "#0f172a" }}>{totalCycleDuration} hrs</b></span>
+                <span style={{ color: "#16694a", fontWeight: 700, display: "flex", alignItems: "center", gap: 5 }}>
+                  <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#16694a" }} />
+                  Overall SLA Target: {overallSlaRate}% Met
+                </span>
+              </div>
             </div>
           </div>
         </div>

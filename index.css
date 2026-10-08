@@ -9535,8 +9535,8 @@ select option {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  min-height: 168px;
-  height: 168px;
+  min-height: 154px;
+  height: 154px;
   position: relative;
   overflow: hidden;
   transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
@@ -9651,7 +9651,7 @@ select option {
 
 .qla-kpi-val {
   font-family: var(--font-heading);
-  font-size: 1.85rem;
+  font-size: 2.05rem;
   font-weight: 800;
   color: #0f172a;
   line-height: 1.05;
@@ -9660,7 +9660,7 @@ select option {
 }
 
 .qla-kpi-card.hero-featured .qla-kpi-val {
-  font-size: 1.85rem;
+  font-size: 2.05rem;
 }
 
 .qla-kpi-label {
@@ -9715,7 +9715,35 @@ select option {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 22px;
-  align-items: stretch;
+  align-items: start;
+}
+
+/* 4b. Modern 2-Column Masonry Layout (Completely Eliminates Empty Whitespace) */
+.qla-masonry-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 22px;
+  align-items: start;
+  margin-bottom: 22px;
+}
+
+.qla-masonry-col {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  min-width: 0;
+}
+
+.qla-masonry-col .qla-card {
+  height: auto !important;
+  min-height: auto !important;
+  justify-content: flex-start !important;
+}
+
+@media (max-width: 1024px) {
+  .qla-masonry-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .qla-card {
@@ -10338,8 +10366,8 @@ select option {
 .qla-stage-legend {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px 16px;
-  padding: 12px 14px 4px;
+  gap: 8px 14px;
+  padding: 10px 14px 4px;
   margin-top: 4px;
   border-top: 1px solid #f1f5f9;
 }
@@ -10347,7 +10375,8 @@ select option {
 .qla-stage-legend-item {
   display: flex;
   align-items: center;
-  gap: 9px;
+  justify-content: space-between;
+  gap: 8px;
   cursor: pointer;
   padding: 4px 6px;
   border-radius: 6px;
