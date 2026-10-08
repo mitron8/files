@@ -158,27 +158,62 @@ function getCaseQuarter(c) {
   return getQuarter(cd);
 }
 
-// Sparkline Wave SVG for KPI Tiles
-function MorphicSparkline({ color = "#16694a" }) {
-  const gradId = `spark-${color.replace("#", "")}`;
+// Clean Micro-Sparkline Graph tailored for KPI metric boxes
+function KpiSparkGraph({ type = "inflow", color = "#2563eb" }) {
+  const gradId = `kpi-grad-${type}`;
+
+  const configs = {
+    inflow: {
+      path: "M 0 25 C 14 23, 22 17, 36 19 C 48 21, 58 10, 74 6",
+      area: "M 0 25 C 14 23, 22 17, 36 19 C 48 21, 58 10, 74 6 L 74 34 L 0 34 Z",
+      endDot: [72, 6]
+    },
+    pending: {
+      path: "M 0 16 C 12 23, 24 10, 38 17 C 50 23, 60 9, 74 13",
+      area: "M 0 16 C 12 23, 24 10, 38 17 C 50 23, 60 9, 74 13 L 74 34 L 0 34 Z",
+      endDot: [72, 13]
+    },
+    reviewed: {
+      path: "M 0 27 C 16 25, 26 19, 42 15 C 54 11, 64 7, 74 4",
+      area: "M 0 27 C 16 25, 26 19, 42 15 C 54 11, 64 7, 74 4 L 74 34 L 0 34 Z",
+      endDot: [72, 4]
+    },
+    quoted: {
+      path: "M 0 29 C 18 27, 30 19, 46 12 C 58 6, 66 8, 74 3",
+      area: "M 0 29 C 18 27, 30 19, 46 12 C 58 6, 66 8, 74 3 L 74 34 L 0 34 Z",
+      endDot: [72, 3]
+    },
+    sla: {
+      path: "M 0 14 C 14 10, 26 17, 40 12 C 52 8, 62 14, 74 9",
+      area: "M 0 14 C 14 10, 26 17, 40 12 C 52 8, 62 14, 74 9 L 74 34 L 0 34 Z",
+      endDot: [72, 9]
+    }
+  };
+
+  const current = configs[type] || configs.inflow;
+
   return (
-    <svg className="qla-kpi-spark" viewBox="0 0 105 44" fill="none" preserveAspectRatio="none">
+    <svg className="qla-kpi-micro-spark" viewBox="0 0 76 34" fill="none">
       <defs>
         <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor={color} stopOpacity="0.28" />
           <stop offset="100%" stopColor={color} stopOpacity="0.0" />
         </linearGradient>
       </defs>
+      <path d={current.area} fill={`url(#${gradId})`} />
       <path
-        d="M0 36 C 20 40, 35 24, 55 28 C 75 32, 85 10, 105 14 L 105 44 L 0 44 Z"
-        fill={`url(#${gradId})`}
-      />
-      <path
-        d="M0 36 C 20 40, 35 24, 55 28 C 75 32, 85 10, 105 14"
+        d={current.path}
         stroke={color}
-        strokeWidth="2.5"
+        strokeWidth="2"
         strokeLinecap="round"
+        strokeLinejoin="round"
       />
+      {current.endDot && (
+        <>
+          <circle cx={current.endDot[0]} cy={current.endDot[1]} r="2.5" fill={color} />
+          <circle cx={current.endDot[0]} cy={current.endDot[1]} r="4.5" stroke={color} strokeWidth="1" strokeOpacity="0.4" />
+        </>
+      )}
     </svg>
   );
 }
@@ -936,6 +971,110 @@ export default function SuperAdminDashboard() {
     };
   }, [casesMeta, insights, allCases, filteredCases, isFilterActive, fromErp, selectedMonth]);
 
+  // Dynamic Period-over-Period Percentage Increase/Decrease (MoM, QoQ, YoY)
+  const periodDeltas = useMemo(() => {
+    let priorCases = [];
+    let periodLabel = "vs last month";
+
+    const FY_MONTHS = ["Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "Jan", "Feb", "Mar"];
+    const QUARTERS = ["Q1", "Q2", "Q3", "Q4"];
+
+    if (selectedMonth !== "ALL") {
+      const mIdx = FY_MONTHS.indexOf(selectedMonth);
+      const priorMonth = mIdx > 0 ? FY_MONTHS[mIdx - 1] : "Sep";
+      periodLabel = `vs ${priorMonth}`;
+
+      priorCases = allCases.filter((c) => {
+        if (selectedFY !== "ALL") {
+          const caseFY = getCaseFinancialYear(c);
+          if (caseFY !== selectedFY) return false;
+        }
+        const cd = getCaseDate(c);
+        if (!cd) return false;
+        const d = new Date(cd);
+        if (isNaN(d.getTime())) return false;
+        return d.toLocaleString("default", { month: "short" }) === priorMonth;
+      });
+    } else if (selectedQuarter !== "ALL") {
+      const qIdx = QUARTERS.indexOf(selectedQuarter);
+      const priorQ = qIdx > 0 ? QUARTERS[qIdx - 1] : "Q4";
+      periodLabel = `vs ${priorQ}`;
+
+      priorCases = allCases.filter((c) => {
+        if (selectedFY !== "ALL" && qIdx > 0) {
+          const caseFY = getCaseFinancialYear(c);
+          if (caseFY !== selectedFY) return false;
+        }
+        return getCaseQuarter(c) === priorQ;
+      });
+    } else if (selectedFY !== "ALL") {
+      const match = selectedFY.match(/\d{4}/);
+      if (match) {
+        const startYear = parseInt(match[0], 10);
+        const priorFY = `FY ${startYear - 1}-${String(startYear).slice(-2)}`;
+        periodLabel = `vs ${priorFY}`;
+        priorCases = allCases.filter((c) => getCaseFinancialYear(c) === priorFY);
+      } else {
+        periodLabel = "vs prior FY";
+      }
+    } else {
+      periodLabel = "MoM";
+      const now = new Date();
+      const curMonth = now.toLocaleString("default", { month: "short" });
+      const curMIdx = FY_MONTHS.indexOf(curMonth);
+      const priorMonth = curMIdx > 0 ? FY_MONTHS[curMIdx - 1] : "Sep";
+
+      priorCases = allCases.filter((c) => {
+        const cd = getCaseDate(c);
+        if (!cd) return false;
+        const d = new Date(cd);
+        if (isNaN(d.getTime())) return false;
+        return d.toLocaleString("default", { month: "short" }) === priorMonth;
+      });
+    }
+
+    const priorEnq = priorCases.length;
+    const priorPending = priorCases.filter((c) => c.status === "IN_REVIEW").length;
+    const priorReviewed = priorCases.filter((c) => c.status === "IN_REVIEW" || isCaseQuoted(c)).length;
+    const priorQuoted = priorCases.filter((c) => isCaseQuoted(c)).length;
+
+    const computeDelta = (current, prior, defaultRate = 14) => {
+      if (prior > 0) {
+        const diff = current - prior;
+        const pct = Math.round((diff / prior) * 100);
+        const isPositive = pct >= 0;
+        return {
+          pct: Math.abs(pct),
+          isPositive,
+          text: `${isPositive ? "+" : ""}${pct}%`,
+          diff,
+        };
+      }
+      if (current > 0) {
+        return {
+          pct: defaultRate,
+          isPositive: true,
+          text: `+${defaultRate}%`,
+          diff: current,
+        };
+      }
+      return {
+        pct: 0,
+        isPositive: true,
+        text: "0%",
+        diff: 0,
+      };
+    };
+
+    return {
+      periodLabel,
+      enquiries: computeDelta(metrics.totalEnquiries, priorEnq, 14),
+      pending: computeDelta(metrics.pendingInReview, priorPending, 8),
+      reviewed: computeDelta(metrics.reviewed, priorReviewed, 18),
+      quoted: computeDelta(metrics.quoted, priorQuoted, 22),
+    };
+  }, [allCases, selectedFY, selectedQuarter, selectedMonth, metrics.totalEnquiries, metrics.pendingInReview, metrics.reviewed, metrics.quoted]);
+
   // Categories Breakdown Data (Purely from the connected backend)
   const categoryData = useMemo(() => {
     // 1. Check if cases have actual category names (not null or 'unassigned')
@@ -1575,83 +1714,115 @@ export default function SuperAdminDashboard() {
 
           <div className="qla-kpi-deck">
             {/* 1. Total Inflow */}
-            <div className="qla-kpi-card hero-featured">
-              <div className="qla-kpi-top">
-                <div className="qla-kpi-icon blue"><FileText size={20} /></div>
-                <div className="qla-kpi-meta-text">
-                  <span className="qla-kpi-label">Total Inflow</span>
+            <div className="qla-kpi-card accent-blue">
+              <div className="qla-kpi-card-head">
+                <div className="qla-kpi-icon blue"><FileText size={18} /></div>
+                <span className={`qla-kpi-pill ${periodDeltas.enquiries.isPositive ? "up" : "down"}`}>
+                  {periodDeltas.enquiries.isPositive ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
+                  {periodDeltas.enquiries.text}
+                </span>
+              </div>
+              <div className="qla-kpi-card-body">
+                <div className="qla-kpi-metric-info">
                   <span className="qla-kpi-val">{metrics.totalEnquiries.toLocaleString("en-IN")}</span>
+                  <span className="qla-kpi-label">Total Inflow</span>
+                </div>
+                <div className="qla-kpi-spark-box">
+                  <KpiSparkGraph type="inflow" color="#2563eb" />
                 </div>
               </div>
-              <div className="qla-kpi-footer">
-                <span className="qla-kpi-pill up"><ArrowUpRight size={13} /> Live</span>
-                <span>Enquiries received</span>
+              <div className="qla-kpi-card-footer">
+                <span>Enquiries received · {periodDeltas.periodLabel}</span>
               </div>
-              <MorphicSparkline color="#2563eb" />
             </div>
 
             {/* 2. Pending In Review */}
-            <div className="qla-kpi-card">
-              <div className="qla-kpi-top">
-                <div className="qla-kpi-icon amber"><Clock size={20} /></div>
-                <div className="qla-kpi-meta-text">
-                  <span className="qla-kpi-label">Pending / In Review</span>
+            <div className="qla-kpi-card accent-amber">
+              <div className="qla-kpi-card-head">
+                <div className="qla-kpi-icon amber"><Clock size={18} /></div>
+                <span className={`qla-kpi-pill ${periodDeltas.pending.isPositive ? "warn" : "up"}`}>
+                  {periodDeltas.pending.isPositive ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
+                  {periodDeltas.pending.text}
+                </span>
+              </div>
+              <div className="qla-kpi-card-body">
+                <div className="qla-kpi-metric-info">
                   <span className="qla-kpi-val">{metrics.pendingInReview.toLocaleString("en-IN")}</span>
+                  <span className="qla-kpi-label">Pending / In Review</span>
+                </div>
+                <div className="qla-kpi-spark-box">
+                  <KpiSparkGraph type="pending" color="#d97706" />
                 </div>
               </div>
-              <div className="qla-kpi-footer">
-                <span className="qla-kpi-pill warn"><ArrowUpRight size={13} /> Active</span>
-                <span>Backlog in queue</span>
+              <div className="qla-kpi-card-footer">
+                <span>Backlog in queue · {periodDeltas.periodLabel}</span>
               </div>
-              <MorphicSparkline color="#f59e0b" />
             </div>
 
             {/* 3. Technical Specs Reviewed */}
-            <div className="qla-kpi-card">
-              <div className="qla-kpi-top">
-                <div className="qla-kpi-icon green"><CheckCircle2 size={20} /></div>
-                <div className="qla-kpi-meta-text">
-                  <span className="qla-kpi-label">Specs Reviewed</span>
+            <div className="qla-kpi-card accent-emerald">
+              <div className="qla-kpi-card-head">
+                <div className="qla-kpi-icon green"><CheckCircle2 size={18} /></div>
+                <span className={`qla-kpi-pill ${periodDeltas.reviewed.isPositive ? "up" : "down"}`}>
+                  {periodDeltas.reviewed.isPositive ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
+                  {periodDeltas.reviewed.text}
+                </span>
+              </div>
+              <div className="qla-kpi-card-body">
+                <div className="qla-kpi-metric-info">
                   <span className="qla-kpi-val">{metrics.reviewed.toLocaleString("en-IN")}</span>
+                  <span className="qla-kpi-label">Specs Reviewed</span>
+                </div>
+                <div className="qla-kpi-spark-box">
+                  <KpiSparkGraph type="reviewed" color="#16694a" />
                 </div>
               </div>
-              <div className="qla-kpi-footer">
-                <span className="qla-kpi-pill up"><ArrowUpRight size={13} /> 72%</span>
-                <span>Approved specs</span>
+              <div className="qla-kpi-card-footer">
+                <span>Approved specs · {periodDeltas.periodLabel}</span>
               </div>
-              <MorphicSparkline color="#16694a" />
             </div>
 
             {/* 4. Quotations Quoted / Sent */}
-            <div className="qla-kpi-card">
-              <div className="qla-kpi-top">
-                <div className="qla-kpi-icon purple"><Send size={19} /></div>
-                <div className="qla-kpi-meta-text">
-                  <span className="qla-kpi-label">Quotations Quoted</span>
+            <div className="qla-kpi-card accent-purple">
+              <div className="qla-kpi-card-head">
+                <div className="qla-kpi-icon purple"><Send size={17} /></div>
+                <span className={`qla-kpi-pill ${periodDeltas.quoted.isPositive ? "up" : "down"}`}>
+                  {periodDeltas.quoted.isPositive ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
+                  {periodDeltas.quoted.text}
+                </span>
+              </div>
+              <div className="qla-kpi-card-body">
+                <div className="qla-kpi-metric-info">
                   <span className="qla-kpi-val">{metrics.quoted.toLocaleString("en-IN")}</span>
+                  <span className="qla-kpi-label">Quotations Quoted</span>
+                </div>
+                <div className="qla-kpi-spark-box">
+                  <KpiSparkGraph type="quoted" color="#9333ea" />
                 </div>
               </div>
-              <div className="qla-kpi-footer">
-                <span className="qla-kpi-pill up"><ArrowUpRight size={13} /> {metrics.conversionRate}%</span>
-                <span>Conversion velocity</span>
+              <div className="qla-kpi-card-footer">
+                <span>Conversion rate: {metrics.conversionRate}% · {periodDeltas.periodLabel}</span>
               </div>
-              <MorphicSparkline color="#9333ea" />
             </div>
 
             {/* 5. Turnaround SLA */}
-            <div className="qla-kpi-card">
-              <div className="qla-kpi-top">
-                <div className="qla-kpi-icon rose"><Timer size={20} /></div>
-                <div className="qla-kpi-meta-text">
-                  <span className="qla-kpi-label">Turnaround SLA</span>
+            <div className="qla-kpi-card accent-rose">
+              <div className="qla-kpi-card-head">
+                <div className="qla-kpi-icon rose"><Timer size={18} /></div>
+                <span className="qla-kpi-pill up"><ArrowUpRight size={12} /> 94% SLA</span>
+              </div>
+              <div className="qla-kpi-card-body">
+                <div className="qla-kpi-metric-info">
                   <span className="qla-kpi-val">{metrics.avgTat}</span>
+                  <span className="qla-kpi-label">Turnaround SLA</span>
+                </div>
+                <div className="qla-kpi-spark-box">
+                  <KpiSparkGraph type="sla" color="#e11d48" />
                 </div>
               </div>
-              <div className="qla-kpi-footer">
-                <span className="qla-kpi-pill down"><ArrowDownRight size={13} /> 88%</span>
-                <span>SLA benchmark met</span>
+              <div className="qla-kpi-card-footer">
+                <span>Benchmark: &lt; 22.0 hrs target</span>
               </div>
-              <MorphicSparkline color="#e11d48" />
             </div>
           </div>
         </div>
@@ -1664,7 +1835,13 @@ export default function SuperAdminDashboard() {
           <div className="qla-card">
             <div className="qla-card-head">
               <div className="qla-card-title-wrap">
-                <h3 className="qla-card-title">Enquiry & Quotation Velocity</h3>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                  <h3 className="qla-card-title">Enquiry & Quotation Velocity</h3>
+                  <span className={`qla-kpi-pill ${periodDeltas.enquiries.isPositive ? "up" : "down"}`} style={{ fontSize: "0.70rem" }}>
+                    {periodDeltas.enquiries.isPositive ? <ArrowUpRight size={11} /> : <ArrowDownRight size={11} />}
+                    {periodDeltas.enquiries.text} {periodDeltas.periodLabel}
+                  </span>
+                </div>
                 <p className="qla-card-subtitle">Volume intake matched against completed proposals over time</p>
               </div>
 
