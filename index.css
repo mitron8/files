@@ -996,22 +996,41 @@ select option {
 /* ============================================================
    17. QUOTATION GENERATION MODAL (qgm-*)
    ============================================================ */
-.qgm-panel { width: min(680px, 95vw); max-height: 90vh; overflow-y: auto; border-radius: 14px; }
-.qgm-header { display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border); }
+.qgm-panel { width: min(1080px, 96vw); max-width: 1080px; max-height: 90vh; overflow-y: auto; border-radius: 14px; }
+.qgm-header { display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--card, #ffffff); z-index: 10; }
 .qgm-title { margin: 0; font-size: 1.15rem; }
 .qgm-close { background: transparent; border: none; font-size: 1.4rem; line-height: 1; cursor: pointer; color: var(--muted); }
 .qgm-body { padding: 1.25rem 1.5rem; }
 .qgm-section-label { font-size: 0.72rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; margin: 0 0 10px; }
 
-.qgm-table-wrap { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 1.5rem; }
-.qgm-table { width: 100%; border-collapse: collapse; }
+.qgm-table-wrap {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow-x: auto;
+  overflow-y: visible;
+  margin-bottom: 1.5rem;
+  background: var(--card, #ffffff);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+.qgm-table { width: 100%; min-width: 860px; border-collapse: collapse; }
 .qgm-table thead th {
   background: var(--surface-1, #f6f8f6); font-size: 0.72rem; color: var(--muted);
-  text-transform: uppercase; letter-spacing: 0.03em; text-align: left; padding: 8px 12px; font-weight: 500;
+  text-transform: uppercase; letter-spacing: 0.03em; text-align: left; padding: 10px 12px; font-weight: 600;
+  white-space: nowrap;
 }
-.qgm-table td { padding: 8px 12px; border-top: 1px solid var(--border); }
-.qgm-table input { width: 100%; padding: 6px 8px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.85rem; }
-.qgm-table .qgm-qty { width: 60px; }
+.qgm-table td { padding: 10px 12px; border-top: 1px solid var(--border); vertical-align: top; }
+.qgm-table input,
+.qgm-table textarea {
+  width: 100%; padding: 7px 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.85rem;
+  box-sizing: border-box; font-family: inherit; transition: border-color 0.15s ease;
+}
+.qgm-table input:focus,
+.qgm-table textarea:focus {
+  outline: none; border-color: var(--brand, #16694a);
+  box-shadow: 0 0 0 2px rgba(22, 105, 74, 0.12);
+}
+.qgm-table .qgm-qty { width: 75px; min-width: 70px; text-align: center; font-weight: 600; }
+.qgm-table .qgm-unit-price { width: 130px; min-width: 110px; text-align: right; font-weight: 600; }
 
 .qgm-terms-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 1.5rem; }
 .qgm-terms-grid label { display: block; font-size: 0.78rem; color: var(--muted); margin-bottom: 4px; }
