@@ -1,0 +1,249 @@
+import { useState, useEffect } from "react";
+import { NavLink, useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import {
+  LayoutDashboard,
+  ClipboardList,
+  FolderOpen,
+  Users,
+  LogOut,
+  ChevronLeft,
+  ChevronRight,
+  Menu,
+  X,
+  BookOpen,
+  ShieldCheck,
+  Package,
+  Settings,
+  Database,
+  ScrollText,
+} from "lucide-react";
+
+const MAIN_NAV_ITEMS = [
+  { to: "/dashboard", label: "Dashboard", Icon: LayoutDashboard },
+  { to: "/", end: true, label: "Review Queue", Icon: ClipboardList },
+  { to: "/cases", label: "All Cases", Icon: FolderOpen },
+];
+
+const MASTER_NAV_ITEMS = [
+  { to: "/master/catalog", label: "Product Catalog", Icon: BookOpen, adminOnly: true },
+  { to: "/master/users", label: "Users & Roles", Icon: Users, adminOnly: true },
+  { to: "/master/settings", label: "Admin Settings", Icon: Settings, adminOnly: true },
+];
+
+const SUPER_ADMIN_NAV_ITEMS = [
+  { to: "/super-admin", end: true, label: "Dashboard", Icon: LayoutDashboard },
+  { to: "/super-admin/users", label: "Users & Roles", Icon: Users },
+  { to: "/super-admin/logs", label: "Logs", Icon: ScrollText },
+];
+
+export default function Sidebar() {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [desktopCollapsed, setDesktopCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  // Close mobile sidebar whenever route changes
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [location.pathname]);
+
+  // Lock body scroll when mobile drawer is open
+  useEffect(() => {
+    if (mobileOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileOpen]);
+
+  // Sync collapsed state to root document for layout responsiveness
+  useEffect(() => {
+    document.documentElement.classList.toggle("sidebar-is-collapsed", desktopCollapsed);
+    return () => {
+      document.documentElement.classList.remove("sidebar-is-collapsed");
+    };
+  }, [desktopCollapsed]);
+
+  if (!user) return null;
+
+  function handleLogout() {
+    logout();
+    navigate("/login");
+  }
+
+  const isSuperAdminView = location.pathname.startsWith("/super-admin") || user.role === "SUPER_ADMIN";
+
+  return (
+    <>
+      {/* 1. Mobile Top Navigation Bar */}
+      <header className="mobile-header">
+        <button
+          type="button"
+          className="mobile-header-btn"
+          onClick={() => setMobileOpen(true)}
+          aria-label="Open navigation menu"
+        >
+          <Menu size={22} />
+        </button>
+        <div className="mobile-brand-wrap">
+          <img
+            src="/techtrol-white.png"
+            alt="Pune Techtrol"
+            className="mobile-brand-logo-white"
+          />
+        </div>
+        <div className="mobile-user-badge">
+          {isSuperAdminView ? "SUPER ADMIN" : user.role}
+        </div>
+      </header>
+
+      {/* 2. Mobile Backdrop Overlay */}
+      {mobileOpen && (
+        <div
+          className="sidebar-backdrop"
+          onClick={() => setMobileOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* 3. Sidebar (Desktop collapsible, Mobile off-canvas drawer) */}
+      <aside
+        className={`sidebar ${desktopCollapsed ? "sidebar-collapsed" : ""} ${
+          mobileOpen ? "sidebar-mobile-open" : ""
+        }`}
+      >
+        <div className="sidebar-top">
+          {!desktopCollapsed ? (
+            <div className="sidebar-brand-area">
+              <img
+                src="/techtrol-white.png"
+                alt="Pune Techtrol"
+                className="sidebar-brand-logo-white"
+              />
+            </div>
+          ) : (
+            <div className="sidebar-collapsed-brand" title="Pune Techtrol">
+              <img
+                src="/techtrol-white-icon.png"
+                alt="Pune Techtrol"
+                className="sidebar-collapsed-logo-white"
+              />
+            </div>
+          )}
+
+          {/* Toggle for desktop only */}
+          <button
+            type="button"
+            className="sidebar-toggle desktop-only"
+            onClick={() => setDesktopCollapsed(!desktopCollapsed)}
+            title={desktopCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            {desktopCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+          </button>
+
+          {/* Close button for mobile drawer */}
+          <button
+            type="button"
+            className="sidebar-close-btn mobile-only"
+            onClick={() => setMobileOpen(false)}
+            aria-label="Close navigation menu"
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        <nav className="sidebar-nav">
+          {isSuperAdminView ? (
+            /* Super Admin View: In left panel there is NOTHING, JUST Dashboard */
+            SUPER_ADMIN_NAV_ITEMS.map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                end
+                className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}
+                title={desktopCollapsed ? item.label : undefined}
+                onClick={() => setMobileOpen(false)}
+              >
+                <span className="sidebar-icon">
+                  <item.Icon size={18} />
+                </span>
+                <span className="sidebar-label">{item.label}</span>
+              </NavLink>
+            ))
+          ) : (
+            /* Standard Admin/Engineer View */
+            <>
+              {/* 1. Main Navigation */}
+              {MAIN_NAV_ITEMS.map((item) => (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  end={item.end}
+                  className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}
+                  title={desktopCollapsed ? item.label : undefined}
+                  onClick={() => setMobileOpen(false)}
+                >
+                  <span className="sidebar-icon">
+                    <item.Icon size={18} />
+                  </span>
+                  <span className="sidebar-label">{item.label}</span>
+                </NavLink>
+              ))}
+
+              {/* 2. Master Section (Admin Only) */}
+              {user.role === "ADMIN" && (
+                <div className="sidebar-group">
+                  <div className="sidebar-group-heading">
+                    {!desktopCollapsed && <span>MASTER</span>}
+                    {desktopCollapsed && <div className="sidebar-group-sep" />}
+                  </div>
+
+                  {MASTER_NAV_ITEMS.map((item) => (
+                    <NavLink
+                      key={item.to}
+                      to={item.to}
+                      className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}
+                      title={desktopCollapsed ? item.label : undefined}
+                      onClick={() => setMobileOpen(false)}
+                    >
+                      <span className="sidebar-icon">
+                        <item.Icon size={18} />
+                      </span>
+                      <span className="sidebar-label">{item.label}</span>
+                    </NavLink>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+        </nav>
+
+        <div className="sidebar-bottom">
+          <div className="sidebar-user">
+            <span className="sidebar-user-name">{user.display_name}</span>
+            <span className="sidebar-user-role">
+              {isSuperAdminView ? "SUPER ADMIN" : user.role}
+            </span>
+          </div>
+
+          <button
+            type="button"
+            className="sidebar-logout"
+            onClick={handleLogout}
+            title={desktopCollapsed ? "Log out" : undefined}
+          >
+            <span className="sidebar-icon">
+              <LogOut size={18} />
+            </span>
+            <span className="sidebar-logout-text">Log out</span>
+          </button>
+        </div>
+      </aside>
+    </>
+  );
+}
