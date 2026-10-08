@@ -1852,65 +1852,71 @@ export default function SuperAdminDashboard() {
         <div className="qla-grid-two">
           {/* Main Visual Chart: Inflow vs Quotation Velocity */}
           <div className="qla-card">
-            <div className="qla-card-head">
-              <div className="qla-card-title-wrap">
+            <div className="qla-card-head" style={{ flexDirection: "column", alignItems: "stretch", gap: 10, marginBottom: 16 }}>
+              {/* Top Row: Title + Delta Badge on Left, Chart Mode Toggles on Right */}
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-                  <h3 className="qla-card-title">Enquiry & Quotation Velocity</h3>
-                  <span className={`qla-kpi-pill ${periodDeltas.enquiries.isPositive ? "up" : "down"}`} style={{ fontSize: "0.70rem" }}>
-                    {periodDeltas.enquiries.isPositive ? <ArrowUpRight size={11} /> : <ArrowDownRight size={11} />}
+                  <h3 className="qla-card-title" style={{ whiteSpace: "nowrap" }}>Enquiry & Quotation Velocity</h3>
+                  <span className={`qla-kpi-pill ${periodDeltas.enquiries.isPositive ? "up" : "down"}`} style={{ fontSize: "0.72rem", padding: "3px 8px" }}>
+                    {periodDeltas.enquiries.isPositive ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
                     {periodDeltas.enquiries.text} {periodDeltas.periodLabel}
                   </span>
                 </div>
-                <p className="qla-card-subtitle">Volume intake matched against completed proposals over time</p>
+
+                {/* View switcher: Spline Wave vs Grouped Bars & Monthly vs Quarterly */}
+                <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                  <div className="qla-switcher">
+                    <button
+                      className={`qla-switcher-btn ${chartType === "wave" ? "active" : ""}`}
+                      onClick={() => setChartType("wave")}
+                      title="Live FY Spline Wave"
+                    >
+                      <Activity size={12} style={{ marginRight: 4, verticalAlign: "-1px" }} />
+                      Wave
+                    </button>
+                    <button
+                      className={`qla-switcher-btn ${chartType === "bar" ? "active" : ""}`}
+                      onClick={() => setChartType("bar")}
+                      title="Grouped Bars"
+                    >
+                      <BarChart2 size={12} style={{ marginRight: 4, verticalAlign: "-1px" }} />
+                      Bar
+                    </button>
+                  </div>
+
+                  <div className="qla-switcher">
+                    <button
+                      className={`qla-switcher-btn ${timeView === "monthly" ? "active" : ""}`}
+                      onClick={() => setTimeView("monthly")}
+                    >
+                      Monthly
+                    </button>
+                    <button
+                      className={`qla-switcher-btn ${timeView === "quarterly" ? "active" : ""}`}
+                      onClick={() => setTimeView("quarterly")}
+                    >
+                      Quarterly
+                    </button>
+                  </div>
+                </div>
               </div>
 
-              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              {/* Bottom Row: Subtitle on Left, Chart Color Legend on Right */}
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap", borderTop: "1px solid #f1f5f9", paddingTop: 8 }}>
+                <p className="qla-card-subtitle" style={{ margin: 0 }}>
+                  Volume intake matched against completed proposals over time
+                </p>
+
                 {/* Visual Legend matching the reference image */}
-                <div style={{ display: "flex", alignItems: "center", gap: 12, marginRight: 4 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "0.74rem", color: "#64748b" }}>
-                    <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#f97316" }} />
+                    <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#f97316", display: "inline-block" }} />
                     <span style={{ fontWeight: 600 }}>Quotations</span>
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "0.74rem", color: "#64748b" }}>
-                    <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#2e3856" }} />
+                    <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#2e3856", display: "inline-block" }} />
                     <span style={{ fontWeight: 600 }}>Enquiries</span>
                   </div>
-                </div>
-
-                {/* View switcher: Spline Wave (Live FY) vs Grouped Bars */}
-                <div className="qla-switcher">
-                  <button
-                    className={`qla-switcher-btn ${chartType === "wave" ? "active" : ""}`}
-                    onClick={() => setChartType("wave")}
-                    title="Live FY Spline Wave"
-                  >
-                    <Activity size={12} style={{ marginRight: 4, verticalAlign: "-1px" }} />
-                    Wave
-                  </button>
-                  <button
-                    className={`qla-switcher-btn ${chartType === "bar" ? "active" : ""}`}
-                    onClick={() => setChartType("bar")}
-                    title="Grouped Bars"
-                  >
-                    <BarChart2 size={12} style={{ marginRight: 4, verticalAlign: "-1px" }} />
-                    Bar
-                  </button>
-                </div>
-
-                {/* Monthly vs Quarterly toggle */}
-                <div className="qla-switcher">
-                  <button
-                    className={`qla-switcher-btn ${timeView === "monthly" ? "active" : ""}`}
-                    onClick={() => setTimeView("monthly")}
-                  >
-                    Monthly
-                  </button>
-                  <button
-                    className={`qla-switcher-btn ${timeView === "quarterly" ? "active" : ""}`}
-                    onClick={() => setTimeView("quarterly")}
-                  >
-                    Quarterly
-                  </button>
                 </div>
               </div>
             </div>
