@@ -1,1 +1,285 @@
+Promise { <state>: "pending" }
 
+📋 Please copy the output below: debugger eval code:45:13
+Object { insightsSummary: {…}, sampleCaseKeys: (13) […], sampleCase: {…}, sampleInReviewCase: {…}, reviewQueueSummary: (5) […], usersList: (11) […] }
+​
+insightsSummary: Object { scope: "ALL_CATEGORIES", incoming_today: 20, incoming_total: 9901, … }
+​
+​
+by_category: Array(10) [ {…}, {…}, {…}, … ]
+​
+​
+engineer_performance: Array(4) [ {…}, {…}, {…}, … ]
+​
+​
+erp_register: true
+​
+​
+incoming_today: 20
+​
+​
+incoming_total: 9901
+​
+​
+pipeline_breakdown: Array [ {…}, {…} ]
+​
+​
+​
+0: Object { category: "Incoming (Pending)", count: 25573 }
+​
+​
+​
+1: Object { category: "Quoted (Sent)", count: 9316 }
+​
+​
+​
+length: 2
+​
+​
+​
+<prototype>: Array []
+​
+​
+​
+​
+at: function at()
+​
+​
+​
+​
+concat: function concat()
+​
+​
+​
+​
+constructor: function Array()
+​
+​
+​
+​
+copyWithin: function copyWithin()
+​
+​
+​
+​
+entries: function entries()
+​
+​
+​
+​
+every: function every()
+​
+​
+​
+​
+fill: function fill()
+​
+​
+​
+​
+filter: function filter()
+​
+​
+​
+​
+find: function find()
+​
+​
+​
+​
+findIndex: function findIndex()
+​
+​
+​
+​
+findLast: function findLast()
+​
+​
+​
+​
+findLastIndex: function findLastIndex()
+​
+​
+​
+​
+flat: function flat()
+​
+​
+​
+​
+flatMap: function flatMap()
+​
+​
+​
+​
+forEach: function forEach()
+​
+​
+​
+​
+includes: function includes()
+​
+​
+​
+​
+indexOf: function indexOf()
+​
+​
+​
+​
+join: function join()
+​
+​
+​
+​
+keys: function keys()
+​
+​
+​
+​
+lastIndexOf: function lastIndexOf()
+​
+​
+​
+​
+length: 0
+​
+​
+​
+​
+map: function map()
+​
+​
+​
+​
+pop: function pop()
+​
+​
+​
+​
+push: function push()
+​
+​
+​
+​
+reduce: function reduce()
+​
+​
+​
+​
+reduceRight: function reduceRight()
+​
+​
+​
+​
+reverse: function reverse()
+​
+​
+​
+​
+shift: function shift()
+​
+​
+​
+​
+slice: function slice()
+​
+​
+​
+​
+some: function some()
+​
+​
+​
+​
+sort: function sort()
+​
+​
+​
+​
+splice: function splice()
+​
+​
+​
+​
+toLocaleString: function toLocaleString()
+​
+​
+​
+​
+toReversed: function toReversed()
+​
+​
+​
+​
+toSorted: function toSorted()
+​
+​
+​
+​
+toSpliced: function toSpliced()
+​
+​
+​
+​
+toString: function toString()
+​
+​
+​
+​
+unshift: function unshift()
+​
+​
+​
+​
+values: function values()
+​
+​
+​
+​
+with: function with()
+​
+​
+​
+​
+Symbol(Symbol.iterator): function values()
+​
+​
+​
+​
+Symbol(Symbol.unscopables): Object { at: true, copyWithin: true, entries: true, … }
+​
+​
+​
+​
+<prototype>: Object { … }
+​
+​
+quotations_sent_today: 3
+​
+​
+quotations_sent_total: 9316
+​
+​
+rejection_rate: 46
+​
+​
+scope: "ALL_CATEGORIES"
+​
+​
+under_review: 25573
+​
+​
+<prototype>: Object { … }
+​
+reviewQueueSummary: Array(5) [ {…}, {…}, {…}, … ]
+​
+sampleCase: Object { case_id: 33594, internal_ref: "PTPL-2627-10174-R0", status: "IN_REVIEW", … }
+​
+sampleCaseKeys: Array(13) [ "case_id", "internal_ref", "status", … ]
+​
+sampleInReviewCase: Object { case_id: 33594, internal_ref: "PTPL-2627-10174-R0", status: "IN_REVIEW", … }
+​
+usersList: Array(11) [ {…}, {…}, {…}, … ]
+​
+<prototype>: Object { … }
