@@ -1,4 +1,4 @@
-copy(JSON.stringify(await (async () => {
+(async () => {
   const token = localStorage.getItem("qla_token");
   const headers = token ? { "Authorization": `Bearer ${token}` } : {};
   const get = async (url) => (await fetch(url, { headers })).json().catch(e => ({ error: e.message }));
@@ -10,12 +10,14 @@ copy(JSON.stringify(await (async () => {
     get("/api/review-queue"),
   ]);
 
-  return {
+  const output = JSON.stringify({
     engineer_performance: insights?.engineer_performance,
     by_category: insights?.by_category,
     sampleCase: (casesSample?.items || casesSample)?.[0],
     sampleCaseKeys: Object.keys((casesSample?.items || casesSample)?.[0] || {}),
     users: Array.isArray(users) ? users.map(u => ({ id: u.id, name: u.display_name || u.name, email: u.email, role: u.role, category: u.category })) : users,
     reviewQueueSample: Array.isArray(reviewQueue) ? reviewQueue.slice(0, 3) : reviewQueue,
-  };
-})(), null, 2));
+  }, null, 2);
+
+  console.log(output);
+})();
