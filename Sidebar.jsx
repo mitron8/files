@@ -17,6 +17,7 @@ import {
   Settings,
   Database,
   ScrollText,
+  KeyRound,
 } from "lucide-react";
 
 const MAIN_NAV_ITEMS = [
@@ -35,6 +36,7 @@ const SUPER_ADMIN_NAV_ITEMS = [
   { to: "/super-admin", end: true, label: "Dashboard", Icon: LayoutDashboard },
   { to: "/super-admin/users", label: "Users & Roles", Icon: Users },
   { to: "/super-admin/logs", label: "Logs", Icon: ScrollText },
+  { to: "/change-password", label: "Change Password", Icon: KeyRound },
 ];
 
 export default function Sidebar() {
@@ -219,28 +221,52 @@ export default function Sidebar() {
                   ))}
                 </div>
               )}
+
+              {/* 3. Account / Security Section */}
+              <div className="sidebar-group">
+                <div className="sidebar-group-heading">
+                  {!desktopCollapsed && <span>ACCOUNT</span>}
+                  {desktopCollapsed && <div className="sidebar-group-sep" />}
+                </div>
+
+                <NavLink
+                  to="/change-password"
+                  className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}
+                  title={desktopCollapsed ? "Change Password" : undefined}
+                  onClick={() => setMobileOpen(false)}
+                >
+                  <span className="sidebar-icon">
+                    <KeyRound size={18} />
+                  </span>
+                  <span className="sidebar-label">Change Password</span>
+                </NavLink>
+              </div>
             </>
           )}
         </nav>
 
         <div className="sidebar-bottom">
-          <div className="sidebar-user">
-            <span className="sidebar-user-name">{user.display_name}</span>
-            <span className="sidebar-user-role">
-              {isSuperAdminView ? "SUPER ADMIN" : user.role}
-            </span>
+          <div className="sidebar-user-card" title={`${user.display_name} (${isSuperAdminView ? "SUPER ADMIN" : user.role})`}>
+            <div className="sidebar-user-avatar">
+              {user.display_name?.charAt(0).toUpperCase() || "U"}
+            </div>
+            <div className="sidebar-user-info">
+              <span className="sidebar-user-name">{user.display_name}</span>
+              <span className="sidebar-user-role">
+                {isSuperAdminView ? "SUPER ADMIN" : user.role}
+              </span>
+            </div>
           </div>
 
           <button
             type="button"
-            className="sidebar-logout"
+            className="sidebar-action-btn sidebar-logout-btn"
+            style={{ width: "100%", padding: "8px 12px", fontSize: "0.82rem" }}
             onClick={handleLogout}
             title={desktopCollapsed ? "Log out" : undefined}
           >
-            <span className="sidebar-icon">
-              <LogOut size={18} />
-            </span>
-            <span className="sidebar-logout-text">Log out</span>
+            <LogOut size={16} />
+            {!desktopCollapsed && <span>Log out</span>}
           </button>
         </div>
       </aside>

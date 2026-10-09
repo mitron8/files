@@ -136,9 +136,26 @@ a { color: inherit; }
   .sidebar.sidebar-collapsed .sidebar-label,
   .sidebar.sidebar-collapsed .sidebar-brand,
   .sidebar.sidebar-collapsed .sidebar-brand-area,
-  .sidebar.sidebar-collapsed .sidebar-user,
-  .sidebar.sidebar-collapsed .sidebar-logout-text {
+  .sidebar.sidebar-collapsed .sidebar-user-info,
+  .sidebar.sidebar-collapsed .sidebar-action-label {
     display: none !important;
+  }
+  .sidebar.sidebar-collapsed .sidebar-user-card {
+    justify-content: center;
+    padding: 6px 4px;
+    background: transparent;
+    border-color: transparent;
+  }
+  .sidebar.sidebar-collapsed .sidebar-footer-actions {
+    flex-direction: column;
+    gap: 6px;
+  }
+  .sidebar.sidebar-collapsed .sidebar-action-btn {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    flex: none;
+    border-radius: 8px;
   }
   .sidebar.sidebar-collapsed .sidebar-top {
     flex-direction: column;
@@ -327,46 +344,94 @@ a { color: inherit; }
   flex-direction: column;
   gap: 8px;
 }
-.sidebar-user {
-  font-size: 0.78rem;
-  color: rgba(255,255,255,0.7);
-  padding: 0 10px 4px;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  overflow: hidden;
-}
-.sidebar-user-name {
-  font-weight: 600;
-  color: white;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.sidebar-user-role {
-  font-size: 0.7rem;
-  color: rgba(255,255,255,0.5);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-.sidebar-logout {
+.sidebar-user-card {
   display: flex;
   align-items: center;
   gap: 10px;
-  background: transparent;
-  border: 1px solid rgba(255,255,255,0.25);
-  color: white;
-  padding: 9px 12px;
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  margin-bottom: 2px;
+  overflow: hidden;
+  transition: all 0.15s ease;
+}
+.sidebar-user-card:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+.sidebar-user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.1) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.82rem;
+  flex-shrink: 0;
+  letter-spacing: -0.02em;
+}
+.sidebar-user-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+.sidebar-user-name {
+  font-weight: 600;
+  font-size: 0.82rem;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.25;
+}
+.sidebar-user-role {
+  font-size: 0.68rem;
+  color: rgba(255, 255, 255, 0.55);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.sidebar-footer-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+}
+.sidebar-action-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  color: rgba(255, 255, 255, 0.88) !important;
+  padding: 8px 12px;
   border-radius: 8px;
   cursor: pointer;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: 500;
   white-space: nowrap;
   transition: all 0.15s ease;
+  outline: none;
 }
-.sidebar-logout:hover {
-  background: rgba(255,255,255,0.12);
-  border-color: rgba(255,255,255,0.4);
+.sidebar-action-btn:hover {
+  background: rgba(255, 255, 255, 0.18) !important;
+  border-color: rgba(255, 255, 255, 0.28) !important;
+  color: #ffffff !important;
+}
+.sidebar-action-btn.sidebar-logout-btn:hover {
+  background: rgba(239, 68, 68, 0.25) !important;
+  border-color: rgba(239, 68, 68, 0.5) !important;
+  color: #fca5a5 !important;
 }
 
 .app-content {
@@ -494,15 +559,15 @@ a { color: inherit; }
     color: white !important;
   }
 
-  .sidebar .sidebar-user,
-  .sidebar.sidebar-collapsed .sidebar-user {
+  .sidebar .sidebar-user-info,
+  .sidebar.sidebar-collapsed .sidebar-user-info {
     display: flex !important;
     opacity: 1 !important;
     visibility: visible !important;
   }
 
-  .sidebar .sidebar-logout-text,
-  .sidebar.sidebar-collapsed .sidebar-logout-text {
+  .sidebar .sidebar-action-label,
+  .sidebar.sidebar-collapsed .sidebar-action-label {
     display: inline-block !important;
     opacity: 1 !important;
     visibility: visible !important;
