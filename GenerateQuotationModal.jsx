@@ -1,20 +1,19 @@
 import { useState, useMemo } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Maximize2, Minimize2, ChevronDown, ChevronUp, AlertCircle, CheckCircle2, FileText, X } from "lucide-react";
 import { api } from "../api/client";
 
 function SpecTable({ line }) {
   const rows = Array.isArray(line?.spec_rows) ? line.spec_rows : [];
   if (!rows.length) return null;
   return (
-    <div style={{ marginTop: 6, padding: "6px 10px", background: "var(--surface-1, #f8fafc)", borderRadius: 8, border: "1px solid var(--border, #e2e8f0)", fontSize: "0.78rem" }}>
-      <table style={{ width: "100%", borderCollapse: "collapse" }}>
+    <div className="qgm-spec-table-box">
+      <div className="qgm-spec-title">Technical Specifications</div>
+      <table className="qgm-spec-table">
         <tbody>
-          {rows.map((row) => (
-            <tr key={`${row.label}:${row.value}`}>
-              <td style={{ fontWeight: 650, padding: "2px 8px 2px 0", width: "120px", verticalAlign: "top", color: "var(--ink)", wordBreak: "break-word" }}>
-                {row.label} :
-              </td>
-              <td style={{ padding: "2px 0", verticalAlign: "top", wordBreak: "break-word", color: "#334155" }}>{row.value}</td>
+          {rows.map((row, idx) => (
+            <tr key={`${row.label}:${row.value}:${idx}`}>
+              <td className="qgm-spec-label">{row.label} :</td>
+              <td className="qgm-spec-value">{row.value}</td>
             </tr>
           ))}
         </tbody>
@@ -28,16 +27,28 @@ function formatCurrency(n) {
 }
 
 export default function GenerateQuotationModal({ caseId, lines: initialLines, onClose, onGenerated }) {
-  const [lines, setLines] = useState(
-    initialLines.map((l) => ({ ...l, _unitPrice: "", customer_tag_no: l.customer_tag_no || "" }))
+  const [lines, setLines] = useState(() =>
+    (initialLines || []).map((l) => ({
+      ...l,
+      _unitPrice: (l._unitPrice != null && l._unitPrice !== "") ? String(l._unitPrice) : (l.unit_price != null ? String(l.unit_price) : ""),
+      customer_tag_no: l.customer_tag_no || "",
+      technical_spec_text: l.technical_spec_text || (Array.isArray(l.spec_rows) && l.spec_rows.length ? l.spec_rows.map((r) => `${r.label}: ${r.value}`).join(", ") : ""),
+    }))
   );
   const [discountPct, setDiscountPct] = useState("");
   const [taxPct, setTaxPct] = useState("");
   const [freightAmount, setFreightAmount] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
-  const hasAllPrices = lines.length > 0 && lines.every((l) => l._unitPrice && parseFloat(l._unitPrice) > 0);
+  const COLLAPSED_LIMIT = 4;
+  const hasManyItems = lines.length > COLLAPSED_LIMIT;
+  const visibleLines = (hasManyItems && !isExpanded) ? lines.slice(0, COLLAPSED_LIMIT) : lines;
+
+  const unpricedCount = lines.filter((l) => !l._unitPrice || parseFloat(l._unitPrice) <= 0).length;
+  const hasAllPrices = lines.length > 0 && unpricedCount === 0;
 
   function updateLineField(lineItemId, field, value) {
     setLines(lines.map((l) => (l.line_item_id === lineItemId ? { ...l, [field]: value } : l)));
@@ -59,6 +70,7 @@ export default function GenerateQuotationModal({ caseId, lines: initialLines, on
       isCustomAdded: true,
     };
     setLines([...lines, newLine]);
+    setIsExpanded(true);
   }
 
   function handleRemoveLine(lineItemId) {
@@ -127,168 +139,411 @@ export default function GenerateQuotationModal({ caseId, lines: initialLines, on
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-panel qgm-panel" onClick={(e) => e.stopPropagation()}>
+      <div
+        className={`modal-panel qgm-panel ${isFullscreen ? "is-fullscreen" : ""}`}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
         <div className="qgm-header">
-          <div>
-            <h3 className="qgm-title">Review and generate quotation</h3>
+          <div className="qgm-header-left">
+            <div className="qgm-header-icon">
+              <FileText size={20} />
+            </div>
+            <div>
+              <h3 className="qgm-title">Review and generate quotation</h3>
+              <p className="qgm-subtitle">
+                Verify item details, pricing, taxes and commercial terms before finalizing
+              </p>
+            </div>
           </div>
-          <button className="qgm-close" onClick={onClose} aria-label="Close">×</button>
+          <div className="qgm-header-actions">
+            <button
+              type="button"
+              className="qgm-icon-btn"
+              onClick={() => setIsFullscreen(!isFullscreen)}
+              title={isFullscreen ? "Exit Fullscreen" : "Expand Fullscreen"}
+              aria-label={isFullscreen ? "Exit Fullscreen" : "Expand Fullscreen"}
+            >
+              {isFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+            </button>
+            <button
+              type="button"
+              className="qgm-icon-btn"
+              onClick={onClose}
+              aria-label="Close"
+              title="Close"
+            >
+              <X size={18} />
+            </button>
+          </div>
         </div>
 
+        {/* Modal Body */}
         <div className="qgm-body">
           {error && <div className="flash flash-error">{error}</div>}
 
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-            <p className="qgm-section-label" style={{ margin: 0 }}>Line items ({lines.length})</p>
+          {/* Missing Prices Alert */}
+          {!hasAllPrices ? (
+            <div className="qgm-alert-warning">
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <AlertCircle size={17} style={{ flexShrink: 0 }} />
+                <div className="qgm-alert-content">
+                  <strong>Unit price required:</strong> Enter a unit price greater than ₹0 for every line item to enable quotation generation.
+                </div>
+              </div>
+              <span className="qgm-alert-pill">
+                {lines.length - unpricedCount} of {lines.length} priced
+              </span>
+            </div>
+          ) : (
+            <div className="qgm-alert-success">
+              <CheckCircle2 size={17} style={{ flexShrink: 0 }} />
+              <div className="qgm-alert-content">
+                All {lines.length} line items have been priced and are ready for generation.
+              </div>
+            </div>
+          )}
+
+          {/* Line items toolbar */}
+          <div className="qgm-items-bar">
+            <div className="qgm-items-bar-left">
+              <h4 className="qgm-section-title">
+                Line Items
+                <span className="qgm-badge">{lines.length}</span>
+              </h4>
+              {hasManyItems && (
+                <button
+                  type="button"
+                  onClick={() => setIsExpanded(!isExpanded)}
+                  className="btn btn-outline"
+                  style={{
+                    padding: "3px 10px",
+                    fontSize: "0.76rem",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 4,
+                    borderRadius: 6,
+                  }}
+                >
+                  {isExpanded ? (
+                    <>
+                      <ChevronUp size={13} /> Collapse List
+                    </>
+                  ) : (
+                    <>
+                      <ChevronDown size={13} /> Expand List ({lines.length} items)
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
+
             <button
               type="button"
-              className="btn btn-outline"
+              className="qgm-add-btn"
               onClick={handleAddNewItem}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 6,
-                padding: "5px 12px",
-                fontSize: "0.8rem",
-                fontWeight: 600,
-                borderRadius: 8,
-                cursor: "pointer",
-                background: "var(--brand-tint, #e6f2ec)",
-                color: "var(--brand-dark, #0d4a33)",
-                borderColor: "#b8ccbf"
-              }}
             >
-              <Plus size={14} />
+              <Plus size={15} />
               Add New Item
             </button>
           </div>
 
-          <div className="qgm-table-wrap">
-            <table className="qgm-table">
-              <thead>
-                <tr>
-                  <th style={{ width: 110, minWidth: 100 }}>Tag No.</th>
-                  <th style={{ width: 140, minWidth: 130 }}>Model</th>
-                  <th style={{ minWidth: 260 }}>Description</th>
-                  <th style={{ width: 85, minWidth: 80, textAlign: "center" }}>Qty</th>
-                  <th style={{ width: 140, minWidth: 130, textAlign: "right" }}>Unit price</th>
-                  <th style={{ width: 44, minWidth: 44, textAlign: "center" }}></th>
-                </tr>
-              </thead>
-              <tbody>
-                {lines.map((l) => (
-                  <tr key={l.line_item_id}>
-                    <td>
-                      <input
-                        value={l.customer_tag_no || ""}
-                        onChange={(e) => updateLineField(l.line_item_id, "customer_tag_no", e.target.value)}
-                        placeholder="Tag no."
-                      />
-                    </td>
-                    <td>
-                      <input
-                        value={l.model_code || ""}
-                        onChange={(e) => updateLineField(l.line_item_id, "model_code", e.target.value)}
-                        placeholder="Model code"
-                      />
-                    </td>
-                    <td>
-                      <input
-                        value={l.description || ""}
-                        onChange={(e) => updateLineField(l.line_item_id, "description", e.target.value)}
-                        placeholder="Item description & details"
-                        style={{ width: "100%", marginBottom: l.spec_rows?.length ? 4 : 0 }}
-                      />
-                      <SpecTable line={l} />
-                    </td>
-                    <td style={{ textAlign: "center" }}>
-                      <input
-                        value={l.qty || ""}
-                        onChange={(e) => updateLineField(l.line_item_id, "qty", e.target.value)}
-                        className="qgm-qty"
-                        placeholder="1"
-                      />
-                    </td>
-                    <td>
-                      <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                        <span style={{ fontSize: "0.82rem", color: "var(--muted)", fontWeight: 700 }}>₹</span>
-                        <input
-                          type="number"
-                          step="any"
-                          min="0"
-                          value={l._unitPrice}
-                          onChange={(e) => updateLineField(l.line_item_id, "_unitPrice", e.target.value)}
-                          className="qgm-unit-price"
-                          placeholder="0.00"
-                        />
-                      </div>
-                    </td>
-                    <td style={{ textAlign: "center", verticalAlign: "middle" }}>
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveLine(l.line_item_id)}
-                        title="Remove this item"
-                        style={{
-                          background: "transparent",
-                          border: "none",
-                          color: "var(--danger, #b3261e)",
-                          cursor: "pointer",
-                          padding: "4px",
-                          display: "inline-flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          borderRadius: 4,
-                        }}
-                      >
-                        <Trash2 size={15} />
-                      </button>
-                    </td>
+          {/* Table Container - Strict 100% width, NO horizontal scroll */}
+          <div className="qgm-table-container">
+            <div className={`qgm-table-scroll-area ${!isExpanded ? "is-collapsed" : ""}`}>
+              <table className="qgm-table">
+                <colgroup>
+                  <col style={{ width: "12%" }} />
+                  <col style={{ width: "15%" }} />
+                  <col style={{ width: "35%" }} />
+                  <col style={{ width: "8%" }} />
+                  <col style={{ width: "14%" }} />
+                  <col style={{ width: "12%" }} />
+                  <col style={{ width: "4%" }} />
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th>Tag No.</th>
+                    <th>Model</th>
+                    <th>Description & Specs</th>
+                    <th style={{ textAlign: "center" }}>Qty</th>
+                    <th style={{ textAlign: "right" }}>Unit Price (₹)</th>
+                    <th style={{ textAlign: "right" }}>Total (₹)</th>
+                    <th style={{ textAlign: "center" }}></th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {visibleLines.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} style={{ textAlign: "center", padding: "2rem", color: "var(--muted)" }}>
+                        No line items available. Click &quot;Add New Item&quot; to add one.
+                      </td>
+                    </tr>
+                  ) : (
+                    visibleLines.map((l) => {
+                      const isUnpriced = !l._unitPrice || parseFloat(l._unitPrice) <= 0;
+                      const lineTotal = (Number(l._unitPrice) || 0) * (Number(l.qty) || 0);
+                      const descLength = (l.description || "").length;
+                      const calculatedRows = Math.max(2, Math.min(5, Math.ceil(descLength / 40)));
+
+                      return (
+                        <tr key={l.line_item_id}>
+                          <td>
+                            <input
+                              value={l.customer_tag_no || ""}
+                              onChange={(e) => updateLineField(l.line_item_id, "customer_tag_no", e.target.value)}
+                              placeholder="Tag no."
+                              className="qgm-input"
+                            />
+                          </td>
+                          <td>
+                            <input
+                              value={l.model_code || ""}
+                              onChange={(e) => updateLineField(l.line_item_id, "model_code", e.target.value)}
+                              placeholder="Model code"
+                              className="qgm-input qgm-input-mono"
+                            />
+                          </td>
+                          <td>
+                            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                              <textarea
+                                value={l.description || ""}
+                                onChange={(e) => updateLineField(l.line_item_id, "description", e.target.value)}
+                                placeholder="Item description & details"
+                                className="qgm-textarea"
+                                rows={calculatedRows}
+                              />
+                              <div>
+                                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 3 }}>
+                                  <span style={{ fontSize: "0.72rem", fontWeight: 700, color: "var(--muted, #64748b)", textTransform: "uppercase", letterSpacing: "0.03em" }}>
+                                    Spec / Technical Details:
+                                  </span>
+                                </div>
+                                <textarea
+                                  value={l.technical_spec_text || ""}
+                                  onChange={(e) => updateLineField(l.line_item_id, "technical_spec_text", e.target.value)}
+                                  placeholder="Enter technical specifications (e.g. Range, Process Conn, Material, Output...)"
+                                  className="qgm-textarea"
+                                  rows={Math.max(2, Math.min(4, Math.ceil((l.technical_spec_text || "").length / 40)))}
+                                  style={{
+                                    fontSize: "0.8rem",
+                                    background: "#fafbfc",
+                                  }}
+                                />
+                              </div>
+                              <SpecTable line={l} />
+                            </div>
+                          </td>
+                          <td style={{ textAlign: "center" }}>
+                            <input
+                              type="number"
+                              min="0"
+                              step="any"
+                              value={l.qty || ""}
+                              onChange={(e) => updateLineField(l.line_item_id, "qty", e.target.value)}
+                              className="qgm-input qgm-qty-input"
+                              placeholder="1"
+                            />
+                          </td>
+                          <td>
+                            <div className={`qgm-price-wrap ${isUnpriced ? "qgm-price-missing" : ""}`}>
+                              <span className="qgm-currency-tag">₹</span>
+                              <input
+                                type="number"
+                                step="any"
+                                min="0"
+                                value={l._unitPrice}
+                                onChange={(e) => updateLineField(l.line_item_id, "_unitPrice", e.target.value)}
+                                className="qgm-input qgm-price-input"
+                                placeholder="0.00"
+                              />
+                            </div>
+                          </td>
+                          <td style={{ textAlign: "right" }}>
+                            <div className="qgm-row-total">
+                              {formatCurrency(lineTotal)}
+                            </div>
+                          </td>
+                          <td style={{ textAlign: "center", verticalAlign: "middle" }}>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveLine(l.line_item_id)}
+                              title="Remove this item"
+                              className="qgm-delete-btn"
+                            >
+                              <Trash2 size={15} />
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Expand / Collapse bottom bar if multiple items */}
+            {hasManyItems && (
+              <div className="qgm-expand-footer">
+                <button
+                  type="button"
+                  className="qgm-expand-btn"
+                  onClick={() => setIsExpanded(!isExpanded)}
+                >
+                  {isExpanded ? (
+                    <>
+                      <ChevronUp size={15} />
+                      Collapse to {COLLAPSED_LIMIT} items
+                    </>
+                  ) : (
+                    <>
+                      <ChevronDown size={15} />
+                      Expand list — View all {lines.length} items ({lines.length - COLLAPSED_LIMIT} more)
+                    </>
+                  )}
+                </button>
+                <span className="qgm-expand-counter">
+                  Showing {visibleLines.length} of {lines.length} line items
+                </span>
+              </div>
+            )}
           </div>
 
-          {!hasAllPrices && (
-            <p style={{ fontSize: "0.8rem", color: "var(--warn)", marginBottom: 10 }}>
-              ⚠ Enter a unit price (greater than 0) for every line item to enable generation.
-            </p>
-          )}
+          {/* Commercial Terms & Totals Side-by-Side */}
+          <div className="qgm-bottom-grid">
+            {/* Commercial Adjustments */}
+            <div className="qgm-card qgm-terms-card">
+              <div className="qgm-card-header">
+                <h4>Commercial Adjustments</h4>
+                <span className="qgm-card-hint">Discount, taxes and freight charges</span>
+              </div>
+              <div className="qgm-terms-inputs">
+                <div className="qgm-field">
+                  <label>Discount %</label>
+                  <div className="qgm-input-affix-wrap">
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="any"
+                      value={discountPct}
+                      onChange={(e) => setDiscountPct(e.target.value)}
+                      placeholder="0"
+                      className="qgm-input qgm-input-with-suffix"
+                    />
+                    <span className="qgm-affix-suffix">%</span>
+                  </div>
+                </div>
 
-          <div className="qgm-terms-grid">
-            <div>
-              <label>Discount %</label>
-              <input type="number" value={discountPct} onChange={(e) => setDiscountPct(e.target.value)} placeholder="0" />
-            </div>
-            <div>
-              <label>Tax %</label>
-              <input type="number" value={taxPct} onChange={(e) => setTaxPct(e.target.value)} placeholder="18" />
-            </div>
-            <div>
-              <label>Freight (₹)</label>
-              <input type="number" value={freightAmount} onChange={(e) => setFreightAmount(e.target.value)} placeholder="0" />
-            </div>
-          </div>
+                <div className="qgm-field">
+                  <label>Tax %</label>
+                  <div className="qgm-input-affix-wrap">
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="any"
+                      value={taxPct}
+                      onChange={(e) => setTaxPct(e.target.value)}
+                      placeholder="18"
+                      className="qgm-input qgm-input-with-suffix"
+                    />
+                    <span className="qgm-affix-suffix">%</span>
+                  </div>
+                </div>
 
-          <div className="qgm-totals">
-            <div className="qgm-totals-row"><span>Subtotal</span><span>{formatCurrency(totals.subtotal)}</span></div>
-            <div className="qgm-totals-row"><span>Discount</span><span>−{formatCurrency(totals.discountAmt)}</span></div>
-            <div className="qgm-totals-row"><span>Tax</span><span>+{formatCurrency(totals.taxAmt)}</span></div>
-            <div className="qgm-totals-row"><span>Freight</span><span>+{formatCurrency(totals.freight)}</span></div>
-            <div className="qgm-totals-row qgm-grand-total"><span>Grand total</span><span>{formatCurrency(totals.grandTotal)}</span></div>
+                <div className="qgm-field">
+                  <label>Freight (₹)</label>
+                  <div className="qgm-input-affix-wrap">
+                    <span className="qgm-affix-prefix">₹</span>
+                    <input
+                      type="number"
+                      min="0"
+                      step="any"
+                      value={freightAmount}
+                      onChange={(e) => setFreightAmount(e.target.value)}
+                      placeholder="0"
+                      className="qgm-input qgm-input-with-prefix"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Quotation Summary */}
+            <div className="qgm-card qgm-totals-card">
+              <div className="qgm-card-header">
+                <h4>Quotation Summary</h4>
+                <span className="qgm-card-hint">Calculated totals in INR (₹)</span>
+              </div>
+              <div className="qgm-totals-list">
+                <div className="qgm-totals-row">
+                  <span>Subtotal ({lines.length} {lines.length === 1 ? "item" : "items"})</span>
+                  <span className="qgm-amount">{formatCurrency(totals.subtotal)}</span>
+                </div>
+                {Number(totals.discountAmt) > 0 && (
+                  <div className="qgm-totals-row qgm-row-discount">
+                    <span>Discount ({discountPct || 0}%)</span>
+                    <span className="qgm-amount">−{formatCurrency(totals.discountAmt)}</span>
+                  </div>
+                )}
+                <div className="qgm-totals-row">
+                  <span>Tax ({taxPct || 0}%)</span>
+                  <span className="qgm-amount">+{formatCurrency(totals.taxAmt)}</span>
+                </div>
+                {Number(totals.freight) > 0 && (
+                  <div className="qgm-totals-row">
+                    <span>Freight</span>
+                    <span className="qgm-amount">+{formatCurrency(totals.freight)}</span>
+                  </div>
+                )}
+                <div className="qgm-totals-divider" />
+                <div className="qgm-totals-row qgm-grand-total">
+                  <div>
+                    <span className="qgm-grand-label">Grand Total</span>
+                    <span className="qgm-grand-sub">Final quotation value</span>
+                  </div>
+                  <span className="qgm-grand-amount">{formatCurrency(totals.grandTotal)}</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
+        {/* Footer */}
         <div className="qgm-footer">
-          <button className="btn btn-outline" onClick={onClose} disabled={saving}>Cancel</button>
-          <button
-            className="btn qgm-primary"
-            onClick={handleApproveAndGenerate}
-            disabled={saving || !hasAllPrices}
-            title={!hasAllPrices ? "Enter a unit price for every line item first" : undefined}
-          >
-            {saving ? "Generating…" : "✓ Approve and generate"}
-          </button>
+          <div className="qgm-footer-status">
+            {hasAllPrices ? (
+              <span className="qgm-status-pill qgm-status-ready">
+                <CheckCircle2 size={14} /> Ready to generate
+              </span>
+            ) : (
+              <span className="qgm-status-pill qgm-status-pending">
+                <AlertCircle size={14} /> {unpricedCount} item{unpricedCount > 1 ? "s" : ""} pending unit price
+              </span>
+            )}
+          </div>
+          <div className="qgm-footer-actions">
+            <button className="btn btn-outline" onClick={onClose} disabled={saving}>
+              Cancel
+            </button>
+            <button
+              className="btn qgm-primary-btn"
+              onClick={handleApproveAndGenerate}
+              disabled={saving || !hasAllPrices}
+              title={!hasAllPrices ? "Enter a unit price for every line item first" : undefined}
+            >
+              {saving ? (
+                <>
+                  <span className="qgm-spinner" /> Generating…
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 size={16} /> Approve and generate
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </div>
