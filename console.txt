@@ -1,1 +1,51 @@
+(async function getDashboardDiagnostics() {
+  const token = localStorage.getItem("qla_token");
+  const headers = token ? { "Authorization": `Bearer ${token}` } : {};
+
+  async function fetchEndpoint(url) {
+    try {
+      const res = await fetch(url, { headers });
+      if (!res.ok) return { status: res.status, error: res.statusText };
+      return await res.json();
+    } catch (e) {
+      return { error: e.message };
+    }
+  }
+
+  console.log("%c🔍 Fetching Live Backend Data for Dashboard...", "color: #16694a; font-weight: bold; font-size: 14px;");
+
+  const [insights, casesSample, inReviewSample, reviewQueue, users] = await Promise.all([
+    fetchEndpoint("/api/insights"),
+    fetchEndpoint("/api/cases?limit=3"),
+    fetchEndpoint("/api/cases?status=IN_REVIEW&limit=3"),
+    fetchEndpoint("/api/review-queue"),
+    fetchEndpoint("/api/users"),
+  ]);
+
+  // Extract keys of a case item to see what engineer fields exist
+  const firstCase = (casesSample?.items || casesSample)?.[0] || {};
+  const caseKeys = Object.keys(firstCase);
+
+  const report = {
+    insightsSummary: insights,
+    sampleCaseKeys: caseKeys,
+    sampleCase: firstCase,
+    sampleInReviewCase: (inReviewSample?.items || inReviewSample)?.[0] || null,
+    reviewQueueSummary: Array.isArray(reviewQueue) ? reviewQueue.slice(0, 5) : reviewQueue,
+    usersList: Array.isArray(users) ? users.map(u => ({ id: u.id, name: u.display_name || u.name, email: u.email, role: u.role })) : users,
+  };
+
+  const jsonString = JSON.stringify(report, null, 2);
+  
+  // Try to copy directly to clipboard
+  try {
+    await navigator.clipboard.writeText(jsonString);
+    console.log("%c✅ Copied diagnostic data to clipboard! Simply press Ctrl + V here in chat.", "color: #22c55e; font-weight: bold; font-size: 13px;");
+  } catch (err) {
+    console.log("%c📋 Please copy the output below:", "color: #0284c7; font-weight: bold;");
+  }
+
+  console.log(report);
+  return "DONE";
+})();
 
