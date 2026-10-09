@@ -305,34 +305,15 @@ export default function GenerateQuotationModal({ caseId, lines: initialLines, on
                             />
                           </td>
                           <td>
-                            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                              <textarea
-                                value={l.description || ""}
-                                onChange={(e) => updateLineField(l.line_item_id, "description", e.target.value)}
-                                placeholder="Item description & details"
-                                className="qgm-textarea"
-                                rows={calculatedRows}
-                              />
-                              <div>
-                                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 3 }}>
-                                  <span style={{ fontSize: "0.72rem", fontWeight: 700, color: "var(--muted, #64748b)", textTransform: "uppercase", letterSpacing: "0.03em" }}>
-                                    Spec / Technical Details:
-                                  </span>
-                                </div>
-                                <textarea
-                                  value={l.technical_spec_text || ""}
-                                  onChange={(e) => updateLineField(l.line_item_id, "technical_spec_text", e.target.value)}
-                                  placeholder="Enter technical specifications (e.g. Range, Process Conn, Material, Output...)"
-                                  className="qgm-textarea"
-                                  rows={Math.max(2, Math.min(4, Math.ceil((l.technical_spec_text || "").length / 40)))}
-                                  style={{
-                                    fontSize: "0.8rem",
-                                    background: "#fafbfc",
-                                  }}
-                                />
-                              </div>
-                              <SpecTable line={l} />
-                            </div>
+                            <textarea
+                              value={l.description || ""}
+                              onChange={(e) => updateLineField(l.line_item_id, "description", e.target.value)}
+                              placeholder="Item description & details"
+                              className="qgm-textarea"
+                              rows={calculatedRows}
+                              style={{ width: "100%", marginBottom: l.spec_rows?.length ? 6 : 0 }}
+                            />
+                            <SpecTable line={l} />
                           </td>
                           <td style={{ textAlign: "center" }}>
                             <input

@@ -791,6 +791,14 @@ select option {
   min-width: 100px;
 }
 
+.data-table.quote-preview-table th:nth-child(5),
+.data-table.quote-preview-table td:nth-child(5),
+.data-table td.quote-spec-cell {
+  white-space: normal !important;
+  word-break: break-word !important;
+  overflow-wrap: break-word !important;
+}
+
 .data-table td:nth-child(2) {
   white-space: normal;
   max-width: 320px;

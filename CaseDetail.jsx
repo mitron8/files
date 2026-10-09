@@ -977,7 +977,14 @@ export default function CaseDetail() {
                       Click "Generate Quotation" to review line items, enter pricing, and approve before the final document is created.
                     </p>
                     <h3 className="modal-section-heading" style={{ marginTop: 18 }}>Line items (preview)</h3>
-                    <table className="data-table">
+                    <table className="data-table quote-preview-table" style={{ width: "100%", tableLayout: "fixed" }}>
+                      <colgroup>
+                        <col style={{ width: "6%" }} />
+                        <col style={{ width: "20%" }} />
+                        <col style={{ width: "24%" }} />
+                        <col style={{ width: "12%" }} />
+                        <col style={{ width: "38%" }} />
+                      </colgroup>
                       <thead>
                         <tr><th>#</th><th>Model</th><th>Description</th><th>Qty</th><th>Spec</th></tr>
                       </thead>
@@ -988,15 +995,15 @@ export default function CaseDetail() {
                             <td><code>{line.model_code || "—"}</code></td>
                             <td>{line.description || "—"}</td>
                             <td>{line.qty || "—"} {line.uom}</td>
-                            <td className="alt-rationale" style={{ minWidth: 220, verticalAlign: "top" }}>
+                            <td className="alt-rationale quote-spec-cell" style={{ verticalAlign: "top", whiteSpace: "normal" }}>
                               {editingSpecLineId === line.line_item_id ? (
-                                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                                <div style={{ display: "flex", flexDirection: "column", gap: 6, width: "100%" }}>
                                   <textarea
                                     value={specDraft}
                                     onChange={(e) => setSpecDraft(e.target.value)}
                                     placeholder="Enter technical specifications…"
                                     autoFocus
-                                    rows={2}
+                                    rows={3}
                                     style={{
                                       width: "100%",
                                       padding: "6px 8px",
@@ -1052,14 +1059,14 @@ export default function CaseDetail() {
                                   </div>
                                 </div>
                               ) : (
-                                <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8 }}>
-                                  <span style={{ wordBreak: "break-word", flex: 1 }}>
+                                <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10, width: "100%" }}>
+                                  <div style={{ wordBreak: "break-word", whiteSpace: "normal", flex: 1, minWidth: 0, fontSize: "0.84rem", lineHeight: 1.45 }}>
                                     {line.technical_spec_text || (
                                       <span style={{ color: "var(--muted)", fontStyle: "italic", fontSize: "0.82rem" }}>
                                         —
                                       </span>
                                     )}
-                                  </span>
+                                  </div>
                                   <button
                                     type="button"
                                     onClick={() => {
@@ -1067,20 +1074,21 @@ export default function CaseDetail() {
                                       setSpecDraft(line.technical_spec_text || "");
                                     }}
                                     title="Edit specification"
+                                    className="btn btn-outline"
                                     style={{
-                                      background: "var(--surface-1, #f1f5f9)",
+                                      background: "#ffffff",
                                       border: "1px solid var(--border, #cbd5e1)",
                                       cursor: "pointer",
-                                      color: "var(--ink, #0f172a)",
-                                      padding: "3px 7px",
-                                      borderRadius: 5,
+                                      color: "var(--brand-dark, #0d4a33)",
+                                      padding: "3px 9px",
+                                      borderRadius: 6,
                                       display: "inline-flex",
                                       alignItems: "center",
                                       gap: 4,
-                                      fontSize: "0.73rem",
+                                      fontSize: "0.74rem",
                                       fontWeight: 600,
                                       flexShrink: 0,
-                                      transition: "all 0.15s ease",
+                                      whiteSpace: "nowrap",
                                     }}
                                   >
                                     <Pencil size={11} /> Edit
@@ -1110,7 +1118,14 @@ export default function CaseDetail() {
                     </div>
 
                     <h3 className="modal-section-heading">Line Items</h3>
-                    <table className="data-table">
+                    <table className="data-table quote-preview-table" style={{ width: "100%", tableLayout: "fixed" }}>
+                      <colgroup>
+                        <col style={{ width: "6%" }} />
+                        <col style={{ width: "20%" }} />
+                        <col style={{ width: "24%" }} />
+                        <col style={{ width: "12%" }} />
+                        <col style={{ width: "38%" }} />
+                      </colgroup>
                       <thead>
                         <tr><th>#</th><th>Model</th><th>Description</th><th>Qty</th><th>Spec</th></tr>
                       </thead>
@@ -1121,15 +1136,15 @@ export default function CaseDetail() {
                             <td><code>{line.model_code || "—"}</code></td>
                             <td>{line.description || "—"}</td>
                             <td>{line.qty || "—"} {line.uom}</td>
-                            <td className="alt-rationale" style={{ minWidth: 220, verticalAlign: "top" }}>
+                            <td className="alt-rationale quote-spec-cell" style={{ verticalAlign: "top", whiteSpace: "normal" }}>
                               {editingSpecLineId === line.line_item_id ? (
-                                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                                <div style={{ display: "flex", flexDirection: "column", gap: 6, width: "100%" }}>
                                   <textarea
                                     value={specDraft}
                                     onChange={(e) => setSpecDraft(e.target.value)}
                                     placeholder="Enter technical specifications…"
                                     autoFocus
-                                    rows={2}
+                                    rows={3}
                                     style={{
                                       width: "100%",
                                       padding: "6px 8px",
@@ -1185,14 +1200,14 @@ export default function CaseDetail() {
                                   </div>
                                 </div>
                               ) : (
-                                <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8 }}>
-                                  <span style={{ wordBreak: "break-word", flex: 1 }}>
+                                <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10, width: "100%" }}>
+                                  <div style={{ wordBreak: "break-word", whiteSpace: "normal", flex: 1, minWidth: 0, fontSize: "0.84rem", lineHeight: 1.45 }}>
                                     {line.technical_spec_text || (
                                       <span style={{ color: "var(--muted)", fontStyle: "italic", fontSize: "0.82rem" }}>
                                         —
                                       </span>
                                     )}
-                                  </span>
+                                  </div>
                                   <button
                                     type="button"
                                     onClick={() => {
@@ -1200,20 +1215,21 @@ export default function CaseDetail() {
                                       setSpecDraft(line.technical_spec_text || "");
                                     }}
                                     title="Edit specification"
+                                    className="btn btn-outline"
                                     style={{
-                                      background: "var(--surface-1, #f1f5f9)",
+                                      background: "#ffffff",
                                       border: "1px solid var(--border, #cbd5e1)",
                                       cursor: "pointer",
-                                      color: "var(--ink, #0f172a)",
-                                      padding: "3px 7px",
-                                      borderRadius: 5,
+                                      color: "var(--brand-dark, #0d4a33)",
+                                      padding: "3px 9px",
+                                      borderRadius: 6,
                                       display: "inline-flex",
                                       alignItems: "center",
                                       gap: 4,
-                                      fontSize: "0.73rem",
+                                      fontSize: "0.74rem",
                                       fontWeight: 600,
                                       flexShrink: 0,
-                                      transition: "all 0.15s ease",
+                                      whiteSpace: "nowrap",
                                     }}
                                   >
                                     <Pencil size={11} /> Edit
