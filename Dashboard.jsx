@@ -668,9 +668,6 @@ function PendingEnquiriesStageWiseCard({ allCases = [] }) {
             <h3 className="qla-card-title">Pending Enquiries – Stage Wise</h3>
             <p className="qla-card-subtitle">Active enquiry backlog distribution across fulfillment stages</p>
           </div>
-          <Link to="/cases" style={{ fontSize: "0.78rem", fontWeight: 700, color: "#16694a", textDecoration: "none", display: "flex", alignItems: "center", gap: 3 }}>
-            Case Queue <ChevronRight size={13} />
-          </Link>
         </div>
 
         {/* Donut Chart with Numbers Inside the Slices */}
@@ -2074,9 +2071,6 @@ export default function Dashboard() {
                   <h3 className="qla-card-title">Pipeline Conversion Velocity</h3>
                   <p className="qla-card-subtitle">Real-time conversion flow from incoming enquiry to final quotation dispatch</p>
                 </div>
-                <Link to="/cases" style={{ fontSize: "0.78rem", fontWeight: 700, color: "#16694a", textDecoration: "none", display: "flex", alignItems: "center", gap: 3 }}>
-                  Case Queue <ChevronRight size={13} />
-                </Link>
               </div>
 
               <div className="qla-simple-stage-list">
@@ -2141,10 +2135,6 @@ export default function Dashboard() {
                       <option value="epc_project">EPC & Projects (2)</option>
                       <option value="special">Specialized (2)</option>
                     </select>
-
-                    <Link to="/cases" style={{ fontSize: "0.76rem", fontWeight: 700, color: "#16694a", textDecoration: "none", display: "flex", alignItems: "center", gap: 3 }}>
-                      Case Queue <ChevronRight size={13} />
-                    </Link>
                   </div>
                 </div>
 
