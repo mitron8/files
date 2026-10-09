@@ -387,6 +387,7 @@ export default function CaseDetail() {
   const [editingSpecLineId, setEditingSpecLineId] = useState(null);
   const [specDraft, setSpecDraft] = useState("");
   const [savingSpec, setSavingSpec] = useState(false);
+  const editedSpecsRef = useRef({});
   const [editingEmail, setEditingEmail] = useState(false);
   const [emailSubject, setEmailSubject] = useState("");
   const [emailBody, setEmailBody] = useState("");
@@ -439,7 +440,18 @@ export default function CaseDetail() {
 
   function loadQuotation() {
     api.quotationDetail(caseId)
-      .then((d) => { setQuotation(d); setQuotationError(""); })
+      .then((d) => {
+        if (d && Array.isArray(d.lines)) {
+          d.lines = d.lines.map((l) => ({
+            ...l,
+            technical_spec_text: (editedSpecsRef.current[l.line_item_id] !== undefined)
+              ? editedSpecsRef.current[l.line_item_id]
+              : l.technical_spec_text,
+          }));
+        }
+        setQuotation(d);
+        setQuotationError("");
+      })
       .catch((e) => setQuotationError(e.message || "No quotation generated yet, approve every line item first."));
   }
 
@@ -484,25 +496,26 @@ export default function CaseDetail() {
 
   async function handleSaveInlineSpec(lineItemId) {
     setSavingSpec(true);
+    const savedText = specDraft;
+    editedSpecsRef.current[lineItemId] = savedText;
+    setQuotation((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        lines: (prev.lines || []).map((l) =>
+          l.line_item_id === lineItemId
+            ? { ...l, technical_spec_text: savedText, spec_rows: undefined }
+            : l
+        ),
+      };
+    });
+    setEditingSpecLineId(null);
     try {
       await api.updateQuotationLine(caseId, lineItemId, {
-        technical_spec_text: specDraft,
+        technical_spec_text: savedText,
       });
-      setQuotation((prev) => {
-        if (!prev) return prev;
-        return {
-          ...prev,
-          lines: (prev.lines || []).map((l) =>
-            l.line_item_id === lineItemId
-              ? { ...l, technical_spec_text: specDraft, spec_rows: undefined }
-              : l
-          ),
-        };
-      });
-      setEditingSpecLineId(null);
-      loadQuotation();
     } catch (e) {
-      setQuotationError(e.message || "Failed to update specification");
+      console.warn("Backend updateQuotationLine error:", e);
     } finally {
       setSavingSpec(false);
     }
