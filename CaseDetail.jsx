@@ -493,11 +493,14 @@ export default function CaseDetail() {
         return {
           ...prev,
           lines: (prev.lines || []).map((l) =>
-            l.line_item_id === lineItemId ? { ...l, technical_spec_text: specDraft } : l
+            l.line_item_id === lineItemId
+              ? { ...l, technical_spec_text: specDraft, spec_rows: undefined }
+              : l
           ),
         };
       });
       setEditingSpecLineId(null);
+      loadQuotation();
     } catch (e) {
       setQuotationError(e.message || "Failed to update specification");
     } finally {

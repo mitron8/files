@@ -1,9 +1,36 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Plus, Trash2, Maximize2, Minimize2, ChevronDown, ChevronUp, AlertCircle, CheckCircle2, FileText, X } from "lucide-react";
 import { api } from "../api/client";
 
+function parseSpecRows(line) {
+  if (line?.technical_spec_text && typeof line.technical_spec_text === "string" && line.technical_spec_text.trim()) {
+    const text = line.technical_spec_text.trim();
+    let rawLines = text.split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
+    if (rawLines.length === 1 && rawLines[0].includes(",") && rawLines[0].includes(":")) {
+      rawLines = rawLines[0].split(",").map((s) => s.trim()).filter(Boolean);
+    }
+    return rawLines.map((item) => {
+      const colonIdx = item.indexOf(":");
+      if (colonIdx !== -1) {
+        return {
+          label: item.slice(0, colonIdx).trim(),
+          value: item.slice(colonIdx + 1).trim(),
+        };
+      }
+      return {
+        label: "",
+        value: item,
+      };
+    });
+  }
+  if (Array.isArray(line?.spec_rows) && line.spec_rows.length) {
+    return line.spec_rows;
+  }
+  return [];
+}
+
 function SpecTable({ line }) {
-  const rows = Array.isArray(line?.spec_rows) ? line.spec_rows : [];
+  const rows = parseSpecRows(line);
   if (!rows.length) return null;
   return (
     <div className="qgm-spec-table-box">
@@ -12,8 +39,14 @@ function SpecTable({ line }) {
         <tbody>
           {rows.map((row, idx) => (
             <tr key={`${row.label}:${row.value}:${idx}`}>
-              <td className="qgm-spec-label">{row.label} :</td>
-              <td className="qgm-spec-value">{row.value}</td>
+              {row.label ? (
+                <>
+                  <td className="qgm-spec-label">{row.label} :</td>
+                  <td className="qgm-spec-value">{row.value}</td>
+                </>
+              ) : (
+                <td colSpan={2} className="qgm-spec-value">{row.value}</td>
+              )}
             </tr>
           ))}
         </tbody>
@@ -35,6 +68,17 @@ export default function GenerateQuotationModal({ caseId, lines: initialLines, on
       technical_spec_text: l.technical_spec_text || (Array.isArray(l.spec_rows) && l.spec_rows.length ? l.spec_rows.map((r) => `${r.label}: ${r.value}`).join(", ") : ""),
     }))
   );
+
+  useEffect(() => {
+    setLines(
+      (initialLines || []).map((l) => ({
+        ...l,
+        _unitPrice: (l._unitPrice != null && l._unitPrice !== "") ? String(l._unitPrice) : (l.unit_price != null ? String(l.unit_price) : ""),
+        customer_tag_no: l.customer_tag_no || "",
+        technical_spec_text: l.technical_spec_text || (Array.isArray(l.spec_rows) && l.spec_rows.length ? l.spec_rows.map((r) => `${r.label}: ${r.value}`).join(", ") : ""),
+      }))
+    );
+  }, [initialLines]);
   const [discountPct, setDiscountPct] = useState("");
   const [taxPct, setTaxPct] = useState("");
   const [freightAmount, setFreightAmount] = useState("");
@@ -311,7 +355,7 @@ export default function GenerateQuotationModal({ caseId, lines: initialLines, on
                               placeholder="Item description & details"
                               className="qgm-textarea"
                               rows={calculatedRows}
-                              style={{ width: "100%", marginBottom: l.spec_rows?.length ? 6 : 0 }}
+                              style={{ width: "100%", marginBottom: parseSpecRows(l).length ? 6 : 0 }}
                             />
                             <SpecTable line={l} />
                           </td>
