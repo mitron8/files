@@ -9916,12 +9916,13 @@ select option {
 }
 
 .activity-page { max-width: 1280px; }
-.activity-head, .activity-filters, .activity-card-title {
+.activity-head, .activity-filters, .activity-card-title, .activity-actions {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 .activity-head { justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+.activity-actions { flex-wrap: wrap; justify-content: flex-end; }
 .activity-refresh, .activity-apply, .activity-presets button {
   border: 1px solid #d6deea;
   background: #fff;
@@ -9962,7 +9963,7 @@ select option {
 .activity-presets { display: flex; gap: 6px; flex-wrap: wrap; }
 .activity-kpis {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 12px;
   margin-bottom: 14px;
 }
@@ -10004,6 +10005,8 @@ select option {
 .activity-user { font-weight: 700; color: #0f172a; }
 .activity-meta { color: #64748b; font-size: 0.72rem; margin-top: 2px; }
 .activity-strong { font-weight: 700; color: #16694a; }
+.activity-rejected { font-weight: 700; color: #b42318; }
+.activity-decision-list { margin-top: 14px; }
 .activity-muted { color: #94a3b8; }
 .activity-empty { padding: 28px 8px; color: #64748b; }
 @media (max-width: 800px) {
@@ -10162,6 +10165,45 @@ select option {
   background-position: right center;
   cursor: pointer;
   outline: none;
+}
+
+.qla-filter-date-input {
+  height: 34px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #0f172a;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  outline: none;
+  font-family: inherit;
+  color-scheme: light;
+}
+
+.qla-filter-date-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.qla-filter-date-clear {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.15s ease;
+}
+
+.qla-filter-date-clear:hover {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
 }
 
 .qla-filter-buttons {

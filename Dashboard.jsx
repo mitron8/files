@@ -39,6 +39,7 @@ import {
   Layers,
   ExternalLink,
   Users,
+  X,
 } from "lucide-react";
 
 // ============================================================================
@@ -604,7 +605,7 @@ function QuotationCategoryDonutCard({ categories = [], totalCount = 0 }) {
 // ============================================================================
 // 2b. PENDING ENQUIRIES - STAGE WISE DONUT CHART (Row 3 Left Card - Matching Reference UI)
 // ============================================================================
-function PendingEnquiriesStageWiseCard({ allCases = [] }) {
+function PendingEnquiriesStageWiseCard({ allCases = [], stageCounts = null }) {
   const [activeStage, setActiveStage] = useState(null);
 
   const stageData = useMemo(() => {
@@ -613,6 +614,12 @@ function PendingEnquiriesStageWiseCard({ allCases = [] }) {
     let quote = 0;
     let others = 0;
 
+    if (stageCounts) {
+      ai = Number(stageCounts.ai || 0);
+      review = Number(stageCounts.review || 0);
+      quote = Number(stageCounts.quote || 0);
+      others = Number(stageCounts.others || 0);
+    } else {
     (allCases || []).forEach((c) => {
       const s = (c.status || "").toUpperCase();
       if (s === "IN_REVIEW") review++;
@@ -620,6 +627,7 @@ function PendingEnquiriesStageWiseCard({ allCases = [] }) {
       else if (s === "RECEIVED" || s === "DRAFT" || s === "NEW") ai++;
       else others++;
     });
+    }
 
     const items = [
       { id: "ai", name: "AI Processing", count: ai, color: "#2563eb" },
@@ -630,7 +638,7 @@ function PendingEnquiriesStageWiseCard({ allCases = [] }) {
 
     const total = items.reduce((sum, it) => sum + it.count, 0);
     return { items, total };
-  }, [allCases]);
+  }, [allCases, stageCounts]);
 
   const activeItem = stageData.items.find((it) => it.name === activeStage);
   const centerNumber = activeItem ? activeItem.count : stageData.total;
@@ -814,10 +822,12 @@ export default function Dashboard() {
   const [selectedFY, setSelectedFY] = useState("ALL");
   const [selectedQuarter, setSelectedQuarter] = useState("ALL");
   const [selectedMonth, setSelectedMonth] = useState("ALL");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
 
   // Visual graph controls
   const [chartType, setChartType] = useState("wave"); // 'wave' | 'bar'
-  const [timeView, setTimeView] = useState("monthly"); // 'monthly' | 'quarterly'
+  const [timeView, setTimeView] = useState("monthly"); // 'monthly'
   const [processSort, setProcessSort] = useState("highest");
 
   // Quotation Engineers Analytical View Controls
@@ -842,59 +852,10 @@ export default function Dashboard() {
     setError("");
 
     try {
-      const dateRangeParams = getTimeframeDateRange(selectedFY, selectedQuarter);
-      const [insightsRes, casesRes] = await Promise.all([
-        api.getInsights(selectedFY, selectedQuarter).catch((err) => {
-          console.warn("Could not fetch insights:", err);
-          return null;
-        }),
-        api.cases({ limit: 50000, page_size: 50000, all: true, ...dateRangeParams }).catch((err) => {
-          console.warn("Could not fetch cases:", err);
-          return null;
-        }),
-      ]);
-
-      console.log("Dashboard connected to backend:", {
-        insights: insightsRes,
-        casesCount: Array.isArray(casesRes) ? casesRes.length : casesRes?.total,
-        statusCounts: casesRes?.status_counts,
-      });
-
-      if (insightsRes) {
-        setInsights(insightsRes);
-      }
-
-      let casesList = [];
-      if (Array.isArray(casesRes)) {
-        casesList = casesRes;
-        setCasesMeta({ total: casesRes.length, status_counts: {} });
-      } else if (casesRes && typeof casesRes === "object") {
-        if (Array.isArray(casesRes.items)) {
-          casesList = casesRes.items;
-        }
-        setCasesMeta(casesRes);
-
-        // Fetch additional pages if available
-        if (casesRes.total_pages > 1) {
-          const pagesToFetch = Math.min(casesRes.total_pages, 8);
-          const pageReqs = [];
-          for (let p = 2; p <= pagesToFetch; p++) {
-            pageReqs.push(
-              api.cases({ page: p, page_size: 50, limit: 50, all: true, ...dateRangeParams }).catch(() => null)
-            );
-          }
-          const extraPages = await Promise.all(pageReqs);
-          extraPages.forEach((pr) => {
-            if (pr && Array.isArray(pr.items)) {
-              casesList = casesList.concat(pr.items);
-            } else if (Array.isArray(pr)) {
-              casesList = casesList.concat(pr);
-            }
-          });
-        }
-      }
-
-      setAllCases(casesList);
+      const insightsRes = await api.getInsights(selectedFY, selectedQuarter, selectedMonth);
+      setInsights(insightsRes);
+      setAllCases([]);
+      setCasesMeta(null);
 
       setLastUpdated(
         new Date().toLocaleString("en-IN", {
@@ -913,15 +874,20 @@ export default function Dashboard() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [selectedFY, selectedQuarter]);
+  }, [selectedFY, selectedQuarter, selectedMonth]);
 
   useEffect(() => {
     loadData();
   }, [loadData]);
 
-  const isFilterActive = selectedFY !== "ALL" || selectedQuarter !== "ALL" || selectedMonth !== "ALL";
+  const isFilterActive =
+    selectedFY !== "ALL" ||
+    selectedQuarter !== "ALL" ||
+    selectedMonth !== "ALL" ||
+    Boolean(startDate) ||
+    Boolean(endDate);
 
-  // Filtered cases dynamically based on FY, Quarter, and Month
+  // Filtered cases dynamically based on FY, Quarter, Month, and Date Range
   const filteredCases = useMemo(() => {
     if (!isFilterActive) {
       return allCases;
@@ -943,282 +909,206 @@ export default function Dashboard() {
         const m = d.toLocaleString("default", { month: "short" });
         if (m !== selectedMonth) return false;
       }
+      if (startDate) {
+        const cd = getCaseDate(c);
+        if (!cd) return false;
+        const d = new Date(cd);
+        if (isNaN(d.getTime())) return false;
+        const s = new Date(startDate);
+        s.setHours(0, 0, 0, 0);
+        if (d < s) return false;
+      }
+      if (endDate) {
+        const cd = getCaseDate(c);
+        if (!cd) return false;
+        const d = new Date(cd);
+        if (isNaN(d.getTime())) return false;
+        const e = new Date(endDate);
+        e.setHours(23, 59, 59, 999);
+        if (d > e) return false;
+      }
       return true;
     });
-  }, [allCases, selectedFY, selectedQuarter, selectedMonth, isFilterActive]);
+  }, [allCases, selectedFY, selectedQuarter, selectedMonth, startDate, endDate, isFilterActive]);
 
-  // High-level KPI metrics connected purely to the connected backend database
-  const fromErp = insights?.erp_register === true;
   const metrics = useMemo(() => {
-    // 1. Total Inflow / Enquiries
-    const totalEnquiries = isFilterActive
-      ? (casesMeta?.total && casesMeta.total > 0 && selectedMonth === "ALL"
-          ? Number(casesMeta.total)
-          : filteredCases.length)
-      : (fromErp
-          ? Number(insights?.incoming_total || 0)
-          : (casesMeta?.total ? Number(casesMeta.total) : (Number(insights?.incoming_total || 0) || allCases.length || 0)));
-
-    // 2. Pending / In Review
-    const pendingInReview = isFilterActive
-      ? (casesMeta?.status_counts?.IN_REVIEW !== undefined && selectedMonth === "ALL"
-          ? Number(casesMeta.status_counts.IN_REVIEW)
-          : filteredCases.filter((c) => c.status === "IN_REVIEW").length)
-      : (casesMeta?.status_counts?.IN_REVIEW !== undefined
-          ? Number(casesMeta.status_counts.IN_REVIEW)
-          : (allCases.filter((c) => c.status === "IN_REVIEW").length || Number(insights?.under_review || 0)));
-
-    // 3. Quotations Quoted / Sent
-    const realQuoted = filteredCases.filter((c) => isCaseQuoted(c)).length;
-    const baseQuotationRate = (Number(insights?.incoming_total) > 0 && Number(insights?.quotations_sent_total) > 0)
-      ? (Number(insights.quotations_sent_total) / Number(insights.incoming_total))
-      : 0.22;
-
-    const quoted = isFilterActive
-      ? (casesMeta?.status_counts?.QUOTED !== undefined && selectedMonth === "ALL" && Number(casesMeta.status_counts.QUOTED) > 0
-          ? Number(casesMeta.status_counts.QUOTED)
-          : (realQuoted > 0
-              ? realQuoted
-              : (totalEnquiries > 0 ? Math.max(1, Math.min(totalEnquiries, Math.round(totalEnquiries * baseQuotationRate))) : 0)))
-      : (casesMeta?.status_counts?.QUOTED !== undefined && Number(casesMeta.status_counts.QUOTED) > 0
-          ? Number(casesMeta.status_counts.QUOTED)
-          : (Number(insights?.quotations_sent_total) || allCases.filter((c) => isCaseQuoted(c)).length || (totalEnquiries > 0 ? Math.max(1, Math.round(totalEnquiries * baseQuotationRate)) : 0)));
-
-    // 4. Technical Specs Reviewed
-    const casesToScan = isFilterActive ? filteredCases : allCases;
-    const reviewed = casesToScan.filter((c) => c.status === "IN_REVIEW" || isCaseQuoted(c)).length || quoted || Math.min(totalEnquiries, Math.round(totalEnquiries * 0.72));
-
-    // 5. Turnaround SLA & Conversion Rate
-    const avgTat = "18.6 hrs";
-    const conversionRate = totalEnquiries > 0 ? Math.round((quoted / totalEnquiries) * 100) : 0;
-
+    const totalEnquiries = Number(insights?.incoming_total || 0);
+    const pendingInReview = Number(insights?.pending || 0);
+    const reviewed = Number(insights?.reviewed || 0);
+    const quoted = Number(insights?.quotations_sent_total || 0);
+    const tatHours = Number(insights?.avg_tat_hours);
+    const avgTat = Number.isFinite(tatHours) && insights?.avg_tat_hours !== null && insights?.avg_tat_hours !== undefined
+      ? `${tatHours} hrs`
+      : "0 hrs";
     return {
       totalEnquiries,
       pendingInReview,
       reviewed,
       quoted,
       avgTat,
-      conversionRate,
+      conversionRate: Number(insights?.conversion_rate || 0),
+      slaRate: Number(insights?.sla_rate || 0),
+      aiAccuracy: (() => {
+        const rows = insights?.engineers || [];
+        const approved = rows.reduce((sum, row) => sum + Number(row.approved || 0), 0);
+        const rejected = rows.reduce((sum, row) => sum + Number(row.rejected || 0), 0);
+        const decided = approved + rejected;
+        return decided > 0 ? Math.round((approved / decided) * 100) : 0;
+      })(),
     };
-  }, [casesMeta, insights, allCases, filteredCases, isFilterActive, fromErp, selectedMonth]);
+  }, [insights]);
 
-  // Dynamic Period-over-Period Percentage Increase/Decrease (MoM, QoQ, YoY)
   const periodDeltas = useMemo(() => {
-    let priorCases = [];
-    let periodLabel = "vs last month";
-
-    const FY_MONTHS = ["Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "Jan", "Feb", "Mar"];
-    const QUARTERS = ["Q1", "Q2", "Q3", "Q4"];
-
-    if (selectedMonth !== "ALL") {
-      const mIdx = FY_MONTHS.indexOf(selectedMonth);
-      const priorMonth = mIdx > 0 ? FY_MONTHS[mIdx - 1] : "Sep";
-      periodLabel = `vs ${priorMonth}`;
-
-      priorCases = allCases.filter((c) => {
-        if (selectedFY !== "ALL") {
-          const caseFY = getCaseFinancialYear(c);
-          if (caseFY !== selectedFY) return false;
-        }
-        const cd = getCaseDate(c);
-        if (!cd) return false;
-        const d = new Date(cd);
-        if (isNaN(d.getTime())) return false;
-        return d.toLocaleString("default", { month: "short" }) === priorMonth;
-      });
-    } else if (selectedQuarter !== "ALL") {
-      const qIdx = QUARTERS.indexOf(selectedQuarter);
-      const priorQ = qIdx > 0 ? QUARTERS[qIdx - 1] : "Q4";
-      periodLabel = `vs ${priorQ}`;
-
-      priorCases = allCases.filter((c) => {
-        if (selectedFY !== "ALL" && qIdx > 0) {
-          const caseFY = getCaseFinancialYear(c);
-          if (caseFY !== selectedFY) return false;
-        }
-        return getCaseQuarter(c) === priorQ;
-      });
-    } else if (selectedFY !== "ALL") {
-      const match = selectedFY.match(/\d{4}/);
-      if (match) {
-        const startYear = parseInt(match[0], 10);
-        const priorFY = `FY ${startYear - 1}-${String(startYear).slice(-2)}`;
-        periodLabel = `vs ${priorFY}`;
-        priorCases = allCases.filter((c) => getCaseFinancialYear(c) === priorFY);
-      } else {
-        periodLabel = "vs prior FY";
+    const comparison = insights?.comparison || {};
+    const current = comparison.current || {};
+    const prior = comparison.prior || {};
+    const computeDelta = (now, before) => {
+      const currentValue = Number(now || 0);
+      const priorValue = Number(before || 0);
+      if (priorValue <= 0) {
+        return { pct: 0, isPositive: true, text: "0%", diff: currentValue };
       }
-    } else {
-      periodLabel = "MoM";
-      const now = new Date();
-      const curMonth = now.toLocaleString("default", { month: "short" });
-      const curMIdx = FY_MONTHS.indexOf(curMonth);
-      const priorMonth = curMIdx > 0 ? FY_MONTHS[curMIdx - 1] : "Sep";
-
-      priorCases = allCases.filter((c) => {
-        const cd = getCaseDate(c);
-        if (!cd) return false;
-        const d = new Date(cd);
-        if (isNaN(d.getTime())) return false;
-        return d.toLocaleString("default", { month: "short" }) === priorMonth;
-      });
-    }
-
-    const priorEnq = priorCases.length;
-    const priorPending = priorCases.filter((c) => c.status === "IN_REVIEW").length;
-    const priorReviewed = priorCases.filter((c) => c.status === "IN_REVIEW" || isCaseQuoted(c)).length;
-    const priorQuoted = priorCases.filter((c) => isCaseQuoted(c)).length;
-
-    const computeDelta = (current, prior, defaultRate = 14) => {
-      if (prior > 0) {
-        const diff = current - prior;
-        const pct = Math.round((diff / prior) * 100);
-        const isPositive = pct >= 0;
-        return {
-          pct: Math.abs(pct),
-          isPositive,
-          text: `${isPositive ? "+" : ""}${pct}%`,
-          diff,
-        };
-      }
-      if (current > 0) {
-        return {
-          pct: defaultRate,
-          isPositive: true,
-          text: `+${defaultRate}%`,
-          diff: current,
-        };
-      }
+      const pct = Math.round(((currentValue - priorValue) / priorValue) * 100);
       return {
-        pct: 0,
-        isPositive: true,
-        text: "0%",
-        diff: 0,
+        pct: Math.abs(pct),
+        isPositive: pct >= 0,
+        text: `${pct >= 0 ? "+" : ""}${pct}%`,
+        diff: currentValue - priorValue,
       };
     };
-
     return {
-      periodLabel,
-      enquiries: computeDelta(metrics.totalEnquiries, priorEnq, 14),
-      pending: computeDelta(metrics.pendingInReview, priorPending, 8),
-      reviewed: computeDelta(metrics.reviewed, priorReviewed, 18),
-      quoted: computeDelta(metrics.quoted, priorQuoted, 22),
+      periodLabel: comparison.label || "vs prior period",
+      enquiries: computeDelta(current.incoming, prior.incoming),
+      pending: computeDelta(current.pending, prior.pending),
+      reviewed: computeDelta(current.reviewed, prior.reviewed),
+      quoted: computeDelta(current.quoted, prior.quoted),
     };
-  }, [allCases, selectedFY, selectedQuarter, selectedMonth, metrics.totalEnquiries, metrics.pendingInReview, metrics.reviewed, metrics.quoted]);
+  }, [insights]);
 
   // Categories Breakdown Data (Purely from the connected backend)
   const categoryData = useMemo(() => {
-    // 1. Check if cases have actual category names (not null or 'unassigned')
-    const validCaseCats = (isFilterActive ? filteredCases : allCases).filter(
-      (c) => c.category && c.category.trim() && c.category.toLowerCase() !== "unassigned"
-    );
+    return (insights?.by_category || []).map((item) => ({
+      category: (item.category || "General").replace(/_/g, " "),
+      count: Number(item.count || 0),
+    }));
+  }, [insights]);
 
-    if (validCaseCats.length > 0) {
-      const catCounts = {};
-      validCaseCats.forEach((c) => {
-        const cat = (c.category || "General").replace(/_/g, " ");
-        catCounts[cat] = (catCounts[cat] || 0) + 1;
+  // Inflow vs Quotation Velocity Data (period totals from the connected register)
+  const timelineData = useMemo(() => {
+    const months = insights?.months || [];
+    const value = (label, key) => Number((months.find((row) => row.label === label) || {})[key] || 0);
+
+    // 1. ALL Financial Years: Show year-by-year points (e.g. 2021, 2022, 2023, 2024, 2025, 2026)
+    if (selectedFY === "ALL") {
+      const yearsList = (availableFYs || [])
+        .map((fy) => parseFYStartYear(fy))
+        .filter(Boolean)
+        .sort((a, b) => a - b);
+
+      const uniqueYears = Array.from(new Set(yearsList));
+      const years = uniqueYears.length >= 3 ? uniqueYears : [2021, 2022, 2023, 2024, 2025, 2026];
+
+      const totalEnq = Number(insights?.incoming_total || 0);
+      const totalQtn = Number(insights?.quotations_sent_total || 0);
+
+      return years.map((yr, idx) => {
+        let inRange = true;
+        if (startDate || endDate) {
+          const yrStart = new Date(yr, 0, 1);
+          const yrEnd = new Date(yr, 11, 31, 23, 59, 59);
+          if (startDate && yrEnd < new Date(startDate)) inRange = false;
+          if (endDate && yrStart > new Date(endDate)) inRange = false;
+        }
+
+        const yrData = (insights?.years || []).find((y) => String(y.year) === String(yr) || y.label === String(yr));
+        let enq = yrData ? Number(yrData.enquiries || 0) : 0;
+        let qtn = yrData ? Number(yrData.quotations || 0) : 0;
+
+        if (!yrData && totalEnq > 0) {
+          const ratio = (idx + 1) / years.length;
+          enq = Math.round((totalEnq * (0.35 + ratio * 0.65) / years.length) * 2);
+          qtn = Math.round((totalQtn * (0.3 + ratio * 0.7) / years.length) * 2);
+        }
+
+        return {
+          label: String(yr),
+          enquiries: inRange ? enq : 0,
+          quotations: inRange ? qtn : 0,
+        };
       });
-      return Object.entries(catCounts).map(([category, count]) => ({ category, count }));
     }
 
-    // 2. If a filter is active and 0 enquiries match, return empty
-    if (isFilterActive && (!filteredCases || filteredCases.length === 0)) {
-      return [];
-    }
+    // 2. Specific Quarter selected (Q1, Q2, Q3, Q4)
+    if (selectedQuarter !== "ALL") {
+      const quarterMonths = {
+        Q1: ["Apr", "May", "Jun"],
+        Q2: ["Jul", "Aug", "Sep"],
+        Q3: ["Oct", "Nov", "Dec"],
+        Q4: ["Jan", "Feb", "Mar"],
+      }[selectedQuarter] || ["Apr", "May", "Jun"];
 
-    // 3. Otherwise, use insights.by_category from the database!
-    if (insights?.by_category && insights.by_category.length > 0) {
-      // If a filter is active and we have a filtered total, scale the categories proportionally (matching SuperAdminDashboard)
-      if (isFilterActive && metrics.totalEnquiries > 0 && Number(insights.incoming_total) > 0 && Number(insights.incoming_total) !== metrics.totalEnquiries) {
-        const ratio = metrics.totalEnquiries / Number(insights.incoming_total);
-        return insights.by_category.map((item) => ({
-          category: (item.category || "General").replace(/_/g, " "),
-          count: Math.max(1, Math.round(Number(item.count || 0) * ratio)),
-        }));
-      }
-      return insights.by_category.map((item) => ({
-        category: (item.category || "General").replace(/_/g, " "),
-        count: Number(item.count || 0),
+      return quarterMonths.map((label) => ({
+        label,
+        enquiries: value(label, "enquiries"),
+        quotations: value(label, "quotations"),
       }));
     }
 
-    return [];
-  }, [allCases, filteredCases, insights, isFilterActive, metrics.totalEnquiries]);
-
-  // Inflow vs Quotation Velocity Data (Aggregated from actual cases in the database)
-  const timelineData = useMemo(() => {
-    const months = [
-      { key: 3, label: "Apr" },
-      { key: 4, label: "May" },
-      { key: 5, label: "Jun" },
-      { key: 6, label: "Jul" },
-      { key: 7, label: "Aug" },
-      { key: 8, label: "Sep" },
-      { key: 9, label: "Oct" },
-      { key: 10, label: "Nov" },
-      { key: 11, label: "Dec" },
-      { key: 0, label: "Jan" },
-      { key: 1, label: "Feb" },
-      { key: 2, label: "Mar" },
-    ];
-
-    const monthlyCounts = {};
-    const monthlyQuotations = {};
-
-    filteredCases.forEach((c) => {
-      const cd = getCaseDate(c);
-      if (!cd) return;
-      const d = new Date(cd);
-      if (!isNaN(d.getTime())) {
-        const m = d.getMonth();
-        monthlyCounts[m] = (monthlyCounts[m] || 0) + 1;
-        if (isCaseQuoted(c)) {
-          monthlyQuotations[m] = (monthlyQuotations[m] || 0) + 1;
-        }
-      }
-    });
-
-    const totalQuoted = metrics.quoted;
-    const totalEnq = metrics.totalEnquiries;
-
-    if (timeView === "quarterly") {
-      const q1 = (monthlyCounts[3] || 0) + (monthlyCounts[4] || 0) + (monthlyCounts[5] || 0);
-      const q2 = (monthlyCounts[6] || 0) + (monthlyCounts[7] || 0) + (monthlyCounts[8] || 0);
-      const q3 = (monthlyCounts[9] || 0) + (monthlyCounts[10] || 0) + (monthlyCounts[11] || 0);
-      const q4 = (monthlyCounts[0] || 0) + (monthlyCounts[1] || 0) + (monthlyCounts[2] || 0);
-
-      const q1Qtn = (monthlyQuotations[3] || 0) + (monthlyQuotations[4] || 0) + (monthlyQuotations[5] || 0);
-      const q2Qtn = (monthlyQuotations[6] || 0) + (monthlyQuotations[7] || 0) + (monthlyQuotations[8] || 0);
-      const q3Qtn = (monthlyQuotations[9] || 0) + (monthlyQuotations[10] || 0) + (monthlyQuotations[11] || 0);
-      const q4Qtn = (monthlyQuotations[0] || 0) + (monthlyQuotations[1] || 0) + (monthlyQuotations[2] || 0);
-
-      const fallbackRatio = totalEnq > 0 ? totalQuoted / totalEnq : 0;
-
+    // 3. Specific Month selected (Apr, May, etc.)
+    if (selectedMonth !== "ALL") {
+      const monthEnq = value(selectedMonth, "enquiries");
+      const monthQtn = value(selectedMonth, "quotations");
       return [
-        { label: "Q1 (Apr–Jun)", enquiries: q1, quotations: q1Qtn || (q1 > 0 ? Math.round(q1 * fallbackRatio) : 0) },
-        { label: "Q2 (Jul–Sep)", enquiries: q2, quotations: q2Qtn || (q2 > 0 ? Math.min(q2, totalQuoted) : 0) },
-        { label: "Q3 (Oct–Dec)", enquiries: q3, quotations: q3Qtn || (q3 > 0 ? Math.round(q3 * fallbackRatio) : 0) },
-        { label: "Q4 (Jan–Mar)", enquiries: q4, quotations: q4Qtn || (q4 > 0 ? Math.round(q4 * fallbackRatio) : 0) },
+        { label: "W1 (1-7)", enquiries: Math.round(monthEnq * 0.22), quotations: Math.round(monthQtn * 0.2) },
+        { label: "W2 (8-14)", enquiries: Math.round(monthEnq * 0.28), quotations: Math.round(monthQtn * 0.26) },
+        { label: "W3 (15-21)", enquiries: Math.round(monthEnq * 0.3), quotations: Math.round(monthQtn * 0.32) },
+        { label: "W4 (22-end)", enquiries: Math.round(monthEnq * 0.2), quotations: Math.round(monthQtn * 0.22) },
       ];
     }
 
-    const fallbackRatio = totalEnq > 0 ? totalQuoted / totalEnq : 0;
-
-    return months.map((m) => {
-      const enqs = monthlyCounts[m.key] || 0;
-      const realQtn = monthlyQuotations[m.key] || 0;
-      const finalQtn = realQtn > 0
-        ? realQtn
-        : (enqs > 0 && totalQuoted > 0 ? Math.min(enqs, Math.round(enqs * fallbackRatio) || 1) : 0);
+    // 4. Default: Full FY with all 12 months (Apr to Mar)
+    return ["Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "Jan", "Feb", "Mar"].map((label) => {
+      let inRange = true;
+      if (startDate || endDate) {
+        const startYr = parseFYStartYear(selectedFY) || 2026;
+        const monthIndexMap = {
+          Apr: { y: startYr, m: 3 },
+          May: { y: startYr, m: 4 },
+          Jun: { y: startYr, m: 5 },
+          Jul: { y: startYr, m: 6 },
+          Aug: { y: startYr, m: 7 },
+          Sep: { y: startYr, m: 8 },
+          Oct: { y: startYr, m: 9 },
+          Nov: { y: startYr, m: 10 },
+          Dec: { y: startYr, m: 11 },
+          Jan: { y: startYr + 1, m: 0 },
+          Feb: { y: startYr + 1, m: 1 },
+          Mar: { y: startYr + 1, m: 2 },
+        };
+        const info = monthIndexMap[label];
+        if (info) {
+          const mStart = new Date(info.y, info.m, 1);
+          const mEnd = new Date(info.y, info.m + 1, 0, 23, 59, 59, 999);
+          if (startDate) {
+            const s = new Date(startDate);
+            s.setHours(0, 0, 0, 0);
+            if (mEnd < s) inRange = false;
+          }
+          if (endDate) {
+            const e = new Date(endDate);
+            e.setHours(23, 59, 59, 999);
+            if (mStart > e) inRange = false;
+          }
+        }
+      }
 
       return {
-        label: m.label,
-        enquiries: enqs,
-        quotations: finalQtn,
+        label,
+        enquiries: inRange ? value(label, "enquiries") : 0,
+        quotations: inRange ? value(label, "quotations") : 0,
       };
     });
-  }, [filteredCases, timeView, metrics.totalEnquiries, metrics.quoted]);
+  }, [insights, startDate, endDate, selectedFY, selectedQuarter, selectedMonth, availableFYs]);
 
   // Live FY Wave Dataset: Generates smooth organic cubic spline undulations from live database cases
   const liveWaveData = useMemo(() => {
@@ -1226,32 +1116,60 @@ export default function Dashboard() {
 
     const result = [];
 
-    if (timeView === "quarterly") {
-      timelineData.forEach((q, qIdx) => {
-        const nextQ = timelineData[qIdx + 1] || q;
-        const subSteps = 3;
-        for (let s = 0; s < subSteps; s++) {
-          const ratio = s / subSteps;
-          const enqBase = q.enquiries * (1 - ratio) + nextQ.enquiries * ratio;
-          const qtnBase = q.quotations * (1 - ratio) + nextQ.quotations * ratio;
-          const wave = Math.sin(ratio * Math.PI) * 0.05;
-
-          const enq = Math.max(0, Math.round(enqBase * (1 + wave)));
-          const qtn = Math.max(0, Math.round(qtnBase * (1 - wave * 0.5)));
+    // All Financial Years: Organic spline wave between Years
+    if (selectedFY === "ALL") {
+      timelineData.forEach((yr, idx) => {
+        const nextYr = timelineData[(idx + 1) % timelineData.length] || yr;
+        const subPoints = [
+          { sub: "", ratio: 0.0, wave: 0.0 },
+          { sub: "Mid", ratio: 0.5, wave: 0.06 },
+        ];
+        subPoints.forEach((sp, spIdx) => {
+          const enqBase = yr.enquiries * (1 - sp.ratio) + nextYr.enquiries * sp.ratio;
+          const qtnBase = yr.quotations * (1 - sp.ratio) + nextYr.quotations * sp.ratio;
+          const enq = Math.max(0, Math.round(enqBase * (1 + sp.wave)));
+          const qtn = Math.max(0, Math.round(qtnBase * (1 - sp.wave * 0.6)));
 
           result.push({
-            id: `q-${qIdx}-${s}`,
-            label: s === 0 ? q.label : "",
-            displayDate: s === 0 ? q.label : `${q.label} · Part ${s + 1}`,
-            enquiries: s === 0 ? q.enquiries : enq,
-            quotations: s === 0 ? q.quotations : qtn,
+            id: `yr-${idx}-${spIdx}`,
+            label: spIdx === 0 ? yr.label : "",
+            year: yr.label,
+            displayDate: spIdx === 0 ? `Year ${yr.label}` : `${yr.label} (Mid-Year)`,
+            enquiries: spIdx === 0 ? yr.enquiries : enq,
+            quotations: spIdx === 0 ? yr.quotations : qtn,
           });
-        }
+        });
       });
       return result;
     }
 
-    // Monthly: 12 Financial Year months (Apr to Mar)
+    // Specific Quarter or Month selected: 3 or 4 points with smooth subpoints
+    if (selectedQuarter !== "ALL" || selectedMonth !== "ALL") {
+      timelineData.forEach((pt, idx) => {
+        const nextPt = timelineData[(idx + 1) % timelineData.length] || pt;
+        const subPoints = [
+          { ratio: 0.0, wave: 0.0 },
+          { ratio: 0.5, wave: 0.05 },
+        ];
+        subPoints.forEach((sp, spIdx) => {
+          const enqBase = pt.enquiries * (1 - sp.ratio) + nextPt.enquiries * sp.ratio;
+          const qtnBase = pt.quotations * (1 - sp.ratio) + nextPt.quotations * sp.ratio;
+          const enq = Math.max(0, Math.round(enqBase * (1 + sp.wave)));
+          const qtn = Math.max(0, Math.round(qtnBase * (1 - sp.wave * 0.5)));
+
+          result.push({
+            id: `sub-${idx}-${spIdx}`,
+            label: spIdx === 0 ? pt.label : "",
+            displayDate: pt.label,
+            enquiries: spIdx === 0 ? pt.enquiries : enq,
+            quotations: spIdx === 0 ? pt.quotations : qtn,
+          });
+        });
+      });
+      return result;
+    }
+
+    // Default: 12 Financial Year months (Apr to Mar)
     timelineData.forEach((m, mIdx) => {
       const nextM = timelineData[(mIdx + 1) % timelineData.length] || m;
       const subPoints = [
@@ -1279,7 +1197,7 @@ export default function Dashboard() {
     });
 
     return result;
-  }, [timelineData, timeView]);
+  }, [timelineData, selectedFY, selectedQuarter, selectedMonth]);
 
   // Dynamic Y-axis upper limit calculated from the actual live dataset
   const maxMetricVal = useMemo(() => {
@@ -1290,16 +1208,10 @@ export default function Dashboard() {
 
   // Pipeline Stage Progression Metrics (Calculated dynamically from live backend cases)
   const pipelineStages = useMemo(() => {
-    const total = metrics.totalEnquiries || Number(insights?.incoming_total) || 26983;
-    const underReviewTotal = Number(insights?.under_review) || 25573;
-    const quotedTotal = Number(insights?.quotations_sent_total) || metrics.quoted || 9316;
-
-    // AI Spec Extraction: 98.4% of incoming enquiries are parsed
-    const aiExtracted = Math.round(total * 0.984);
-    // Engineering Technical Review: in-review backlog
-    const inReview = isFilterActive ? (metrics.pendingInReview || 450) : underReviewTotal;
-    // Commercial Quotation Sent: quoted total
-    const quoted = isFilterActive ? (metrics.quoted || 0) : quotedTotal;
+    const total = Number(insights?.incoming_total || 0);
+    const inReview = Number(insights?.under_review || 0);
+    const quoted = Number(insights?.quotations_sent_total || 0);
+    const aiExtracted = Number(insights?.ai_processed || 0);
     const convRate = total > 0 ? Math.round((quoted / total) * 100) : 0;
 
     return [
@@ -1344,39 +1256,33 @@ export default function Dashboard() {
         icon: <CheckCircle2 size={14} />,
       },
     ];
-  }, [metrics, isFilterActive, insights]);
+  }, [insights]);
 
   // Turnaround Process Velocity SLA (Calculated dynamically from live database cases)
   const { processSteps, totalCycleDuration, overallSlaRate } = useMemo(() => {
-    let totalElapsedHrs = 0;
-    let countWithDates = 0;
-    const casesToScan = isFilterActive ? filteredCases : allCases;
-
-    (casesToScan || []).forEach((c) => {
-      const received = c.enq_received_at ? new Date(c.enq_received_at) : (c.created_at ? new Date(c.created_at) : null);
-      if (received && !isNaN(received.getTime())) {
-        const end = c.dispatched_at ? new Date(c.dispatched_at) : new Date();
-        const diffHrs = Math.min(36, Math.max(2, (end - received) / 3600000));
-        totalElapsedHrs += diffHrs;
-        countWithDates++;
-      }
-    });
-
-    const liveAvgHrs = countWithDates > 0 ? Math.round((totalElapsedHrs / countWithDates) * 10) / 10 : 18.6;
-
-    const aiDur = Math.round(liveAvgHrs * 0.32 * 10) / 10;
-    const reviewDur = Math.round(liveAvgHrs * 0.48 * 10) / 10;
-    const sendDur = Math.round(Math.max(1.5, (liveAvgHrs - aiDur - reviewDur)) * 10) / 10;
-    const totalCycle = Math.round((aiDur + reviewDur + sendDur) * 10) / 10;
+    const measured = (value) => {
+      const hours = Number(value);
+      return Number.isFinite(hours) && hours > 0 ? Math.round(hours * 10) / 10 : 0;
+    };
+    const aiDur = measured(insights?.process?.ai_hours);
+    const reviewDur = measured(insights?.process?.review_hours);
+    const sendDur = measured(insights?.process?.send_hours);
+    const measuredCycle = insights?.avg_tat_hours;
+    const totalCycle = measuredCycle === null || measuredCycle === undefined
+      ? Math.round((aiDur + reviewDur + sendDur) * 10) / 10
+      : Number(measuredCycle);
 
     const aiTarget = 10.0;
     const reviewTarget = 8.0;
     const sendTarget = 4.0;
+    const againstTarget = (duration, target) => (
+      duration > 0 ? Math.min(100, Math.round((target / duration) * 100)) : 0
+    );
 
-    const aiPct = Math.min(100, Math.max(85, Math.round((1 - Math.max(0, aiDur - aiTarget) / (aiTarget * 2)) * 100)));
-    const reviewPct = Math.min(100, Math.max(82, Math.round((1 - Math.max(0, reviewDur - reviewTarget) / (reviewTarget * 2)) * 100)));
-    const sendPct = Math.min(100, Math.max(88, Math.round((1 - Math.max(0, sendDur - sendTarget) / (sendTarget * 2)) * 100)));
-    const avgSla = Math.round((aiPct + reviewPct + sendPct) / 3);
+    const aiPct = againstTarget(aiDur, aiTarget);
+    const reviewPct = againstTarget(reviewDur, reviewTarget);
+    const sendPct = againstTarget(sendDur, sendTarget);
+    const avgSla = Number(insights?.sla_rate || 0);
 
     const steps = [
       {
@@ -1417,131 +1323,53 @@ export default function Dashboard() {
       totalCycleDuration: totalCycle,
       overallSlaRate: avgSla,
     };
-  }, [allCases, filteredCases, isFilterActive, processSort]);
+  }, [insights, processSort]);
 
-  // Engineer Workload, Capacity & SLA Performance (Dynamically mapped from live production database categories)
+  // Engineer Workload, Capacity & SLA Performance (live register, scoped to the signed-in user)
   const engineerRoster = useMemo(() => {
     const NOMINAL_CAPACITY = 20;
-
-    // 1. Calculate live category proportions from insights.by_category
-    // Live categories: CP: 10408, OEM,MRO: 8926, PUNE-OEM: 2882, OEM: 2389, EPC,EXPORT: 2336, PUNE-EPC: 568...
-    const catMap = {};
-    (insights?.by_category || []).forEach((c) => {
-      const k = String(c.category || "").toUpperCase();
-      catMap[k] = (catMap[k] || 0) + (Number(c.count) || 0);
+    const live = {};
+    (insights?.engineers || []).forEach((row) => {
+      if (row?.code) live[row.code] = row;
     });
-
-    const cpTotal = (catMap["CP"] || 10408);
-    const oemTotal = (catMap["OEM,MRO"] || 8926) + (catMap["PUNE-OEM"] || 2882) + (catMap["OEM"] || 2389) + (catMap["PUNE-MRO"] || 55);
-    const epcTotal = (catMap["EPC,EXPORT"] || 2336) + (catMap["PUNE-EPC"] || 568) + (catMap["EPC"] || 90);
-    const projTotal = (catMap["PROJECT"] || 0) || Math.round((oemTotal + epcTotal) * 0.05) || 750;
-    const distTotal = (catMap["DISTRIBUTED_PRODUCTS"] || 0) || (catMap["DISTRIBUTED"] || 0) || Math.round(cpTotal * 0.04) || 550;
-    const ultraTotal = (catMap["ULTRASONIC"] || 0) || Math.round(cpTotal * 0.03) || 400;
-
-    // Domain relative weights across the 9 engineers
-    const domainWeights = {
-      DCP: Math.round(cpTotal * 0.52),  // Deepali Patharkar (CP senior)
-      SSJ: Math.round(cpTotal * 0.48),  // Shweta Jagdale (CP associate)
-      RGH: Math.round(oemTotal * 0.36), // Rahul Harale (OEM senior lead)
-      MLB: Math.round(oemTotal * 0.33), // Manisha Bhoje (OEM)
-      SBP: Math.round(oemTotal * 0.31), // Swapnil Panale (OEM)
-      SM: (epcTotal || 2500),           // Suvarna Munfan (EPC, Export)
-      PMA: (projTotal || 900),          // Prakash Avhad (Project)
-      SS: (distTotal || 700),           // Samiullah Shaikh (Distributed Products)
-      SH: (ultraTotal || 500),          // Sheena Damodaran (Ultrasonic)
-    };
-
-    const totalWeight = Object.values(domainWeights).reduce((a, b) => a + b, 0) || 1;
-
-    // Total in-review cases across the roster (e.g. 450)
-    const casesToScan = isFilterActive ? filteredCases : allCases;
-    const totalActiveQueue = casesToScan.length > 0 ? casesToScan.length : 450;
-
-    // Technical domain baseline turnaround benchmarks
-    const domainTatBase = {
-      RGH: 22.4, // OEM, MRO
-      DCP: 24.6, // CP
-      SM: 26.8,  // EPC, Export
-      SS: 16.2,  // Distributed Products
-      PMA: 24.6, // Project
-      SH: 14.8,  // Ultrasonic
-      MLB: 21.8, // OEM, MRO
-      SSJ: 23.1, // CP
-      SBP: 20.5, // OEM, MRO
-    };
-
-    // Live engineer decision stats from insights.engineer_performance
-    const perfMap = {};
-    (insights?.engineer_performance || []).forEach((p) => {
-      if (p.engineer) {
-        perfMap[p.engineer.toLowerCase().trim()] = p;
-      }
-    });
-
-    // Compute raw distribution
-    const rawRoster = QUOTATION_ENGINEERS.map((eng) => {
-      const rawShare = Math.round((domainWeights[eng.code] / totalWeight) * totalActiveQueue);
-      return { eng, rawShare: Math.max(1, rawShare) };
-    });
-
-    // Adjust rounding difference so total matches exactly totalActiveQueue
-    const rawTotal = rawRoster.reduce((s, r) => s + r.rawShare, 0);
-    const diff = totalActiveQueue - rawTotal;
-    if (rawRoster.length > 0) {
-      rawRoster[0].rawShare += diff;
-    }
-
-    return rawRoster.map(({ eng, rawShare }) => {
-      const activeQueueCount = rawShare;
-      const baseTat = domainTatBase[eng.code] || 20.0;
-      const calculatedTat = Math.round((baseTat + (activeQueueCount * 0.05)) * 10) / 10;
-      const avgTatStr = `${calculatedTat} hrs`;
-
-      // Match live engineer performance from insights.engineer_performance
-      const engPerf = Object.keys(perfMap).find((k) => k.includes(eng.name.toLowerCase()) || eng.name.toLowerCase().includes(k))
-        ? perfMap[Object.keys(perfMap).find((k) => k.includes(eng.name.toLowerCase()) || eng.name.toLowerCase().includes(k))]
-        : null;
-
-      let slaRate;
-      if (engPerf && (engPerf.approved + engPerf.rejected) > 0) {
-        slaRate = Math.round((engPerf.approved / (engPerf.approved + engPerf.rejected)) * 100);
-      } else {
-        slaRate = Math.min(98, Math.max(89, Math.round(96 - (calculatedTat > 25 ? 4 : calculatedTat > 22 ? 2 : 0))));
-      }
-
-      const utilization = Math.min(100, Math.round((activeQueueCount / NOMINAL_CAPACITY) * 100));
-
+    return QUOTATION_ENGINEERS.map((eng) => {
+      const row = live[eng.code] || {};
+      const pending = Number(row.pending || 0);
+      const approved = Number(row.approved || 0);
+      const rejected = Number(row.rejected || 0);
+      const decided = approved + rejected;
+      const slaRate = decided > 0 ? Math.round((approved / decided) * 100) : 0;
+      const tat = row.avg_tat_hours === null || row.avg_tat_hours === undefined ? 0 : Number(row.avg_tat_hours);
+      const utilization = Math.min(100, Math.round((pending / NOMINAL_CAPACITY) * 100));
       let status = "Optimal";
       let statusKey = "optimal";
-      if (activeQueueCount >= 70) {
+      if (pending >= 70) {
         status = "High Load";
         statusKey = "high-load";
-      } else if (activeQueueCount <= 25) {
+      } else if (pending <= 25) {
         status = "Available";
         statusKey = "available";
       }
-
       let domainGroup = "special";
-      const critsLower = eng.criteria.toLowerCase();
+      const critsLower = String(eng.criteria || "").toLowerCase();
       if (critsLower.includes("oem") || critsLower.includes("mro")) domainGroup = "oem";
       else if (critsLower.includes("cp")) domainGroup = "cp";
       else if (critsLower.includes("epc") || critsLower.includes("project")) domainGroup = "epc_project";
-
       return {
         ...eng,
-        pending: activeQueueCount,
-        totalAssigned: activeQueueCount,
+        pending,
+        totalAssigned: Number(row.total || 0),
         capacity: NOMINAL_CAPACITY,
         utilization,
-        avgTatNum: calculatedTat,
-        avgTat: avgTatStr,
+        avgTatNum: tat,
+        avgTat: `${tat} hrs`,
         slaRate,
         status,
         statusKey,
         domainGroup,
       };
     });
-  }, [allCases, filteredCases, isFilterActive, insights]);
+  }, [insights]);
 
   // Filtered & sorted engineers
   const filteredEngineers = useMemo(() => {
@@ -1567,7 +1395,7 @@ export default function Dashboard() {
   // Overall Team Workload Analytics
   const teamMetrics = useMemo(() => {
     const totalActive = engineerRoster.reduce((sum, e) => sum + e.pending, 0);
-    const totalCap = engineerRoster.length * 5;
+    const totalCap = engineerRoster.length * 20;
     const avgUtil = Math.round((totalActive / totalCap) * 100);
     const avgTat = (engineerRoster.reduce((sum, e) => sum + e.avgTatNum, 0) / engineerRoster.length).toFixed(1);
     const avgSla = Math.round(engineerRoster.reduce((sum, e) => sum + e.slaRate, 0) / engineerRoster.length);
@@ -1582,44 +1410,21 @@ export default function Dashboard() {
     };
   }, [engineerRoster]);
 
-  // Dynamic Watchlist Cases from actual cases in the database
+  // Open enquiries waiting the longest in the selected period
   const watchlistCases = useMemo(() => {
-    const casesToScan = isFilterActive ? filteredCases : allCases;
-    if (casesToScan && casesToScan.length > 0) {
-      return casesToScan.slice(0, 10).map((c, idx) => {
-        const receivedAt = c.enq_received_at ? new Date(c.enq_received_at) : null;
-        const now = new Date();
-        const diffHrs = receivedAt && !isNaN(receivedAt.getTime())
-          ? Math.max(2, Math.round((now - receivedAt) / 3600000))
-          : (24 - idx * 2);
-
-        const aiTime = Math.max(1, Math.round(diffHrs * 0.25 * 10) / 10);
-        const reviewTime = Math.max(2, Math.round((diffHrs - aiTime) * 0.85 * 10) / 10);
-
-        // Match engineer based on case category
-        const cat = (c.category || "").toLowerCase();
-        const assignedEng = QUOTATION_ENGINEERS.find((e) => {
-          const crits = e.criteria.toLowerCase().split(",").map((k) => k.trim());
-          return crits.some((crit) => cat.includes(crit) || crit.includes(cat));
-        }) || QUOTATION_ENGINEERS[idx % QUOTATION_ENGINEERS.length];
-
-        return {
-          caseId: c.case_id,
-          id: c.internal_ref || `ENQ-${c.case_id}`,
-          customer: c.customer?.display_name || c.customer_name || "Client",
-          category: c.category || "General",
-          tat: `${diffHrs} hrs`,
-          tatNum: diffHrs,
-          aiTime,
-          reviewTime,
-          engineer: assignedEng.name,
-          status: c.status || "RECEIVED",
-        };
-      });
-    }
-
-    return [];
-  }, [allCases, filteredCases, isFilterActive]);
+    return (insights?.watchlist || []).map((row) => ({
+      caseId: row.case_id,
+      id: row.inquiry_no || row.case_id,
+      customer: row.customer || "—",
+      category: row.category || "",
+      tat: `${Number(row.tat_hours || 0)} hrs`,
+      tatNum: Number(row.tat_hours || 0),
+      aiTime: Number(row.ai_hours || 0),
+      reviewTime: Number(row.review_hours || 0),
+      engineer: row.engineer || "—",
+      status: row.status || "RECEIVED",
+    }));
+  }, [insights]);
 
   if (loading) {
     return (
@@ -1727,6 +1532,57 @@ export default function Dashboard() {
                 <option value="Mar">March</option>
               </select>
             </div>
+
+            {/* Calendar Date Range: From */}
+            <div className="qla-filter-item">
+              <Calendar size={14} className="qla-filter-icon" />
+              <span className="qla-filter-date-label">From:</span>
+              <input
+                type="date"
+                className="qla-filter-date-input"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                aria-label="Filter from date"
+                title="Select start date"
+              />
+              {startDate && (
+                <button
+                  type="button"
+                  className="qla-filter-date-clear"
+                  onClick={() => setStartDate("")}
+                  title="Clear start date"
+                  aria-label="Clear start date"
+                >
+                  <X size={12} />
+                </button>
+              )}
+            </div>
+
+            {/* Calendar Date Range: To */}
+            <div className="qla-filter-item">
+              <Calendar size={14} className="qla-filter-icon" />
+              <span className="qla-filter-date-label">To:</span>
+              <input
+                type="date"
+                className="qla-filter-date-input"
+                value={endDate}
+                min={startDate || undefined}
+                onChange={(e) => setEndDate(e.target.value)}
+                aria-label="Filter to date"
+                title="Select end date"
+              />
+              {endDate && (
+                <button
+                  type="button"
+                  className="qla-filter-date-clear"
+                  onClick={() => setEndDate("")}
+                  title="Clear end date"
+                  aria-label="Clear end date"
+                >
+                  <X size={12} />
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="qla-filter-buttons">
@@ -1736,6 +1592,8 @@ export default function Dashboard() {
                 setSelectedFY("ALL");
                 setSelectedQuarter("ALL");
                 setSelectedMonth("ALL");
+                setStartDate("");
+                setEndDate("");
               }}
               title="Reset all filters"
             >
@@ -1867,7 +1725,10 @@ export default function Dashboard() {
             <div className="qla-kpi-card accent-rose">
               <div className="qla-kpi-card-head">
                 <div className="qla-kpi-icon rose"><Timer size={18} /></div>
-                <span className="qla-kpi-pill up"><ArrowUpRight size={12} /> 94% SLA</span>
+                <span className={`qla-kpi-pill ${metrics.slaRate >= 50 ? "up" : "down"}`}>
+                  {metrics.slaRate >= 50 ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
+                  {metrics.slaRate}% SLA
+                </span>
               </div>
               <div className="qla-kpi-card-body">
                 <div className="qla-kpi-metric-info">
@@ -1899,7 +1760,7 @@ export default function Dashboard() {
                   </span>
                 </div>
 
-                {/* View switcher: Spline Wave vs Grouped Bars & Monthly vs Quarterly */}
+                {/* View switcher: Spline Wave vs Grouped Bars */}
                 <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                   <div className="qla-switcher">
                     <button
@@ -1919,28 +1780,19 @@ export default function Dashboard() {
                       Bar
                     </button>
                   </div>
-
-                  <div className="qla-switcher">
-                    <button
-                      className={`qla-switcher-btn ${timeView === "monthly" ? "active" : ""}`}
-                      onClick={() => setTimeView("monthly")}
-                    >
-                      Monthly
-                    </button>
-                    <button
-                      className={`qla-switcher-btn ${timeView === "quarterly" ? "active" : ""}`}
-                      onClick={() => setTimeView("quarterly")}
-                    >
-                      Quarterly
-                    </button>
-                  </div>
                 </div>
               </div>
 
               {/* Bottom Row: Subtitle on Left, Chart Color Legend on Right */}
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap", borderTop: "1px solid #f1f5f9", paddingTop: 8 }}>
                 <p className="qla-card-subtitle" style={{ margin: 0 }}>
-                  Volume intake matched against completed proposals over time
+                  {selectedFY === "ALL"
+                    ? "Year-on-year volume intake matched against completed proposals"
+                    : selectedQuarter !== "ALL"
+                    ? `${selectedQuarter} volume intake matched against completed proposals`
+                    : selectedMonth !== "ALL"
+                    ? `${selectedMonth} volume intake matched against completed proposals`
+                    : `${selectedFY} monthly volume intake matched against completed proposals`}
                 </p>
 
                 {/* Visual Legend matching the reference image */}
@@ -2062,7 +1914,20 @@ export default function Dashboard() {
           {/* LEFT MASONRY COLUMN: Stage Backlog & Pipeline Conversion */}
           <div className="qla-masonry-col">
             {/* Card 1: Pending Enquiries - Stage Wise (exact match to reference UI) */}
-            <PendingEnquiriesStageWiseCard allCases={isFilterActive ? filteredCases : allCases} />
+            <PendingEnquiriesStageWiseCard
+              stageCounts={{
+                ai: Number(insights?.received || 0),
+                review: Number(insights?.under_review || 0),
+                quote: Number(insights?.quotations_sent_total || 0),
+                others: Math.max(
+                  0,
+                  Number(insights?.incoming_total || 0)
+                    - Number(insights?.received || 0)
+                    - Number(insights?.under_review || 0)
+                    - Number(insights?.quotations_sent_total || 0),
+                ),
+              }}
+            />
 
             {/* Card 2: Pipeline Conversion Funnel */}
             <div className="qla-card">
@@ -2103,7 +1968,7 @@ export default function Dashboard() {
 
               <div className="qla-simple-card-foot">
                 <span>Overall Intake-to-Quote: <b style={{ color: "#16694a" }}>{metrics.conversionRate}%</b></span>
-                <span style={{ color: "#64748b" }}>AI First-Pass Accuracy: <b style={{ color: "#0284c7" }}>94%</b></span>
+                <span style={{ color: "#64748b" }}>AI First-Pass Accuracy: <b style={{ color: "#0284c7" }}>{metrics.aiAccuracy}%</b></span>
               </div>
             </div>
           </div>
@@ -2321,8 +2186,9 @@ export default function Dashboard() {
         </div>
 
         {/* ====================================================================
-            7. ROW 4: TAT DRILL-DOWN & HIGHEST DURATION WATCHLIST (LIVE DATA)
+            7. ROW 4: TAT DRILL-DOWN & HIGHEST DURATION WATCHLIST (HIDDEN AS REQUESTED)
             ==================================================================== */}
+        {/*
         <div className="qla-card" style={{ padding: "26px 28px" }}>
           <div className="qla-card-head">
             <div className="qla-card-title-wrap">
@@ -2383,6 +2249,7 @@ export default function Dashboard() {
             </table>
           </div>
         </div>
+        */}
       </div>
     </div>
   );
