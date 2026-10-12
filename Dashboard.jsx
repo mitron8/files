@@ -1533,51 +1533,93 @@ export default function Dashboard() {
               </select>
             </div>
 
-            {/* Calendar Date Range: From */}
-            <div className="qla-filter-item">
-              <Calendar size={14} className="qla-filter-icon" />
-              <span className="qla-filter-date-label">From:</span>
+            {/* Unified Calendar Date Range Capsule */}
+            <div
+              className="qla-filter-item qla-date-range-capsule"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "3px 10px",
+                background: "#f8fafc",
+                border: "1px solid #e2e8f0",
+                borderRadius: 12,
+              }}
+            >
+              <Calendar size={14} style={{ color: "#16694a", flexShrink: 0 }} />
               <input
                 type="date"
                 className="qla-filter-date-input"
+                style={{
+                  border: "none",
+                  background: "transparent",
+                  fontSize: "0.82rem",
+                  fontWeight: 600,
+                  color: "#0f172a",
+                  outline: "none",
+                  cursor: "pointer",
+                  fontFamily: "inherit",
+                  padding: "2px 0",
+                  width: "120px",
+                }}
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                aria-label="Filter from date"
-                title="Select start date"
+                onClick={(e) => {
+                  try {
+                    e.target.showPicker?.();
+                  } catch {}
+                }}
+                aria-label="From Date"
+                title="Click to select start date"
               />
-              {startDate && (
-                <button
-                  type="button"
-                  className="qla-filter-date-clear"
-                  onClick={() => setStartDate("")}
-                  title="Clear start date"
-                  aria-label="Clear start date"
-                >
-                  <X size={12} />
-                </button>
-              )}
-            </div>
-
-            {/* Calendar Date Range: To */}
-            <div className="qla-filter-item">
-              <Calendar size={14} className="qla-filter-icon" />
-              <span className="qla-filter-date-label">To:</span>
+              <span style={{ fontSize: "0.74rem", color: "#94a3b8", fontWeight: 700, textTransform: "uppercase" }}>to</span>
               <input
                 type="date"
                 className="qla-filter-date-input"
+                style={{
+                  border: "none",
+                  background: "transparent",
+                  fontSize: "0.82rem",
+                  fontWeight: 600,
+                  color: "#0f172a",
+                  outline: "none",
+                  cursor: "pointer",
+                  fontFamily: "inherit",
+                  padding: "2px 0",
+                  width: "120px",
+                }}
                 value={endDate}
                 min={startDate || undefined}
                 onChange={(e) => setEndDate(e.target.value)}
-                aria-label="Filter to date"
-                title="Select end date"
+                onClick={(e) => {
+                  try {
+                    e.target.showPicker?.();
+                  } catch {}
+                }}
+                aria-label="To Date"
+                title="Click to select end date"
               />
-              {endDate && (
+              {(startDate || endDate) && (
                 <button
                   type="button"
-                  className="qla-filter-date-clear"
-                  onClick={() => setEndDate("")}
-                  title="Clear end date"
-                  aria-label="Clear end date"
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: "#94a3b8",
+                    cursor: "pointer",
+                    padding: 2,
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    borderRadius: "50%",
+                    marginLeft: 2,
+                  }}
+                  onClick={() => {
+                    setStartDate("");
+                    setEndDate("");
+                  }}
+                  title="Clear custom date range"
+                  aria-label="Clear custom date range"
                 >
                   <X size={12} />
                 </button>
