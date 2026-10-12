@@ -2053,8 +2053,7 @@ export default function Dashboard() {
                         <th style={{ padding: "10px 14px", fontWeight: 700, color: "#475569" }}>Quotation Engineer</th>
                         <th style={{ padding: "10px 12px", fontWeight: 700, color: "#475569" }}>Domain</th>
                         <th style={{ padding: "10px 12px", textAlign: "center", fontWeight: 700, color: "#475569" }}>Active Queue</th>
-                        <th style={{ padding: "10px 12px", textAlign: "right", fontWeight: 700, color: "#475569" }}>Avg TAT</th>
-                        <th style={{ padding: "10px 14px", textAlign: "right", fontWeight: 700, color: "#475569" }}>SLA Met</th>
+                        <th style={{ padding: "10px 14px", textAlign: "right", fontWeight: 700, color: "#475569" }}>Avg TAT</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -2089,11 +2088,8 @@ export default function Dashboard() {
                               {eng.pending} {eng.pending === 1 ? "Case" : "Cases"}
                             </span>
                           </td>
-                          <td style={{ padding: "9px 12px", textAlign: "right", whiteSpace: "nowrap" }}>
-                            <span style={{ fontWeight: 600, color: "#334155" }}>{eng.avgTat}</span>
-                          </td>
                           <td style={{ padding: "9px 14px", textAlign: "right", whiteSpace: "nowrap" }}>
-                            <span style={{ fontWeight: 700, color: "#16694a" }}>{eng.slaRate}%</span>
+                            <span style={{ fontWeight: 600, color: "#334155" }}>{eng.avgTat}</span>
                           </td>
                         </tr>
                       ))}
