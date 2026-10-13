@@ -1,0 +1,364 @@
+{
+  "erp_register": true,
+  "incoming_today": 0,
+  "incoming_total": 2282,
+  "quotations_sent_today": 0,
+  "quotations_sent_total": 1211,
+  "under_review": 150,
+  "received": 921,
+  "pending": 1071,
+  "reviewed": 1361,
+  "ai_processed": 2278,
+  "avg_tat_hours": 224,
+  "sla_rate": 14,
+  "conversion_rate": 53,
+  "by_category": [
+    {
+      "category": "CP",
+      "count": 839
+    },
+    {
+      "category": "MRO",
+      "count": 673
+    },
+    {
+      "category": "OEM",
+      "count": 292
+    },
+    {
+      "category": "PUNE-OEM",
+      "count": 238
+    },
+    {
+      "category": "EXPORT",
+      "count": 135
+    },
+    {
+      "category": "EPC",
+      "count": 59
+    },
+    {
+      "category": "PUNE-EPC",
+      "count": 20
+    },
+    {
+      "category": "PUNE-MRO",
+      "count": 17
+    },
+    {
+      "category": "-",
+      "count": 9
+    }
+  ],
+  "months": [
+    {
+      "month": 4,
+      "label": "Apr",
+      "enquiries": 2282,
+      "quotations": 1211
+    },
+    {
+      "month": 5,
+      "label": "May",
+      "enquiries": 0,
+      "quotations": 0
+    },
+    {
+      "month": 6,
+      "label": "Jun",
+      "enquiries": 0,
+      "quotations": 0
+    },
+    {
+      "month": 7,
+      "label": "Jul",
+      "enquiries": 0,
+      "quotations": 0
+    },
+    {
+      "month": 8,
+      "label": "Aug",
+      "enquiries": 0,
+      "quotations": 0
+    },
+    {
+      "month": 9,
+      "label": "Sep",
+      "enquiries": 0,
+      "quotations": 0
+    },
+    {
+      "month": 10,
+      "label": "Oct",
+      "enquiries": 0,
+      "quotations": 0
+    },
+    {
+      "month": 11,
+      "label": "Nov",
+      "enquiries": 0,
+      "quotations": 0
+    },
+    {
+      "month": 12,
+      "label": "Dec",
+      "enquiries": 0,
+      "quotations": 0
+    },
+    {
+      "month": 1,
+      "label": "Jan",
+      "enquiries": 0,
+      "quotations": 0
+    },
+    {
+      "month": 2,
+      "label": "Feb",
+      "enquiries": 0,
+      "quotations": 0
+    },
+    {
+      "month": 3,
+      "label": "Mar",
+      "enquiries": 0,
+      "quotations": 0
+    }
+  ],
+  "engineers": [
+    {
+      "code": "RGH",
+      "name": "Rahul Harale",
+      "pending": 137,
+      "total": 340,
+      "quoted": 203,
+      "avg_tat_hours": 152.6,
+      "approved": 0,
+      "rejected": 0
+    },
+    {
+      "code": "DCP",
+      "name": "Deepali Patharkar",
+      "pending": 118,
+      "total": 237,
+      "quoted": 119,
+      "avg_tat_hours": 230.2,
+      "approved": 0,
+      "rejected": 0
+    },
+    {
+      "code": "SM",
+      "name": "Suvarna Munfan",
+      "pending": 180,
+      "total": 323,
+      "quoted": 143,
+      "avg_tat_hours": 200.9,
+      "approved": 0,
+      "rejected": 0
+    },
+    {
+      "code": "SS",
+      "name": "Samiullah Shaikh",
+      "pending": 74,
+      "total": 126,
+      "quoted": 52,
+      "avg_tat_hours": 184.2,
+      "approved": 0,
+      "rejected": 0
+    },
+    {
+      "code": "PMA",
+      "name": "Prakash Avhad",
+      "pending": 75,
+      "total": 145,
+      "quoted": 70,
+      "avg_tat_hours": 275,
+      "approved": 0,
+      "rejected": 0
+    },
+    {
+      "code": "SH",
+      "name": "Sheena Damodaran",
+      "pending": 61,
+      "total": 110,
+      "quoted": 49,
+      "avg_tat_hours": 84.2,
+      "approved": 0,
+      "rejected": 0
+    },
+    {
+      "code": "MLB",
+      "name": "Manisha Bhoje",
+      "pending": 49,
+      "total": 139,
+      "quoted": 90,
+      "avg_tat_hours": 304.8,
+      "approved": 0,
+      "rejected": 0
+    },
+    {
+      "code": "SSJ",
+      "name": "Shweta Jagdale",
+      "pending": 61,
+      "total": 129,
+      "quoted": 68,
+      "avg_tat_hours": 118.6,
+      "approved": 0,
+      "rejected": 0
+    },
+    {
+      "code": "SBP",
+      "name": "Swapnil Panale",
+      "pending": 55,
+      "total": 99,
+      "quoted": 44,
+      "avg_tat_hours": 358.9,
+      "approved": 0,
+      "rejected": 0
+    }
+  ],
+  "engineer_performance": [],
+  "process": {
+    "ai_hours": 8026.5,
+    "review_hours": 0,
+    "send_hours": 224
+  },
+  "comparison": {
+    "label": "vs Mar",
+    "current": {
+      "incoming": 2282,
+      "pending": 1071,
+      "reviewed": 1361,
+      "quoted": 1211
+    },
+    "prior": {
+      "incoming": 1154,
+      "pending": 708,
+      "reviewed": 498,
+      "quoted": 446
+    }
+  },
+  "watchlist": [
+    {
+      "case_id": 6595,
+      "inquiry_no": "PTPL-2526-166-R1",
+      "customer": "KIRLOSKAR PNEUMATIC COMPANY LIMITED",
+      "category": "OEM,MRO",
+      "status": "RECEIVED",
+      "engineer": "Suvarna Munfan",
+      "tat_hours": 21992.6,
+      "ai_hours": 21538.3,
+      "review_hours": 454.3
+    },
+    {
+      "case_id": 6443,
+      "inquiry_no": "PTPL-2526-16-R0",
+      "customer": "SRF LIMITED. . .",
+      "category": "OEM,MRO",
+      "status": "RECEIVED",
+      "engineer": "Prakash Avhad",
+      "tat_hours": 13448.6,
+      "ai_hours": 12994.3,
+      "review_hours": 454.3
+    },
+    {
+      "case_id": 6450,
+      "inquiry_no": "PTPL-2526-23-R1",
+      "customer": "THERMAX LIMITED. (WWS)",
+      "category": "-",
+      "status": "RECEIVED",
+      "engineer": "Rahul Harale",
+      "tat_hours": 13448.6,
+      "ai_hours": 12994.3,
+      "review_hours": 454.3
+    },
+    {
+      "case_id": 6459,
+      "inquiry_no": "PTPL-2526-32-R1",
+      "customer": "TSA PROCESS EQUIPMENTS PVT. LTD.",
+      "category": "OEM,MRO",
+      "status": "RECEIVED",
+      "engineer": "AAP",
+      "tat_hours": 13448.6,
+      "ai_hours": 12994.3,
+      "review_hours": 454.3
+    },
+    {
+      "case_id": 6461,
+      "inquiry_no": "PTPL-2526-33-R1",
+      "customer": "METEC DESIGN & CONSTRUCTION ENGINEERS INDIA PVT.LTD.",
+      "category": "CP",
+      "status": "RECEIVED",
+      "engineer": "Suvarna Munfan",
+      "tat_hours": 13448.6,
+      "ai_hours": 12994.3,
+      "review_hours": 454.3
+    },
+    {
+      "case_id": 6473,
+      "inquiry_no": "PTPL-2526-42-R0",
+      "customer": "SOUTHERN ENERGY TECHNOLOGIES",
+      "category": "OEM,MRO",
+      "status": "RECEIVED",
+      "engineer": "Suvarna Munfan",
+      "tat_hours": 13448.6,
+      "ai_hours": 12994.3,
+      "review_hours": 454.3
+    },
+    {
+      "case_id": 6475,
+      "inquiry_no": "PTPL-2526-44-R0",
+      "customer": "LAKSHMI ENERGY AND ENVIRONMENT DESIGNS PRIVATE LIMITED.",
+      "category": "OEM,MRO",
+      "status": "RECEIVED",
+      "engineer": "RKP",
+      "tat_hours": 13448.6,
+      "ai_hours": 12994.3,
+      "review_hours": 454.3
+    },
+    {
+      "case_id": 6488,
+      "inquiry_no": "PTPL-2526-60-R0",
+      "customer": "ISGEC HEAVY ENGINEERING LTD.",
+      "category": "CP",
+      "status": "RECEIVED",
+      "engineer": "DBS",
+      "tat_hours": 13448.6,
+      "ai_hours": 12994.3,
+      "review_hours": 454.3
+    },
+    {
+      "case_id": 6489,
+      "inquiry_no": "PTPL-2526-61-R0",
+      "customer": "WIPRO ENTERPRISES PVT. LTD. (WIPRO WATER)",
+      "category": "OEM,MRO",
+      "status": "RECEIVED",
+      "engineer": "RKP",
+      "tat_hours": 13448.6,
+      "ai_hours": 12994.3,
+      "review_hours": 454.3
+    },
+    {
+      "case_id": 6492,
+      "inquiry_no": "PTPL-2526-63-R1",
+      "customer": "JSW ENERGY (BARMER) LIMITED",
+      "category": "-",
+      "status": "RECEIVED",
+      "engineer": "Samiullah Shaikh",
+      "tat_hours": 13448.6,
+      "ai_hours": 12994.3,
+      "review_hours": 454.3
+    }
+  ],
+  "pipeline_breakdown": [
+    {
+      "category": "Incoming (Pending)",
+      "count": 1071
+    },
+    {
+      "category": "Quoted (Sent)",
+      "count": 1211
+    }
+  ],
+  "scope": "ALL_CATEGORIES",
+  "rejection_rate": 0
+}
