@@ -40,6 +40,7 @@ import {
   ExternalLink,
   Users,
   X,
+  Check,
 } from "lucide-react";
 
 // ============================================================================
@@ -818,12 +819,48 @@ export default function Dashboard() {
     });
   }, [allCases, currentFY]);
 
-  // Filter state (Defaults to "ALL" matching SuperAdminDashboard)
+  // Filter state (Applied filters)
   const [selectedFY, setSelectedFY] = useState("ALL");
   const [selectedQuarter, setSelectedQuarter] = useState("ALL");
   const [selectedMonth, setSelectedMonth] = useState("ALL");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+
+  // Staged / Draft Filter state for user selection
+  const [draftFY, setDraftFY] = useState("ALL");
+  const [draftQuarter, setDraftQuarter] = useState("ALL");
+  const [draftMonth, setDraftMonth] = useState("ALL");
+  const [draftStartDate, setDraftStartDate] = useState("");
+  const [draftEndDate, setDraftEndDate] = useState("");
+
+  const hasPendingChanges =
+    draftFY !== selectedFY ||
+    draftQuarter !== selectedQuarter ||
+    draftMonth !== selectedMonth ||
+    draftStartDate !== startDate ||
+    draftEndDate !== endDate;
+
+  const handleApplyFilter = () => {
+    setSelectedFY(draftFY);
+    setSelectedQuarter(draftQuarter);
+    setSelectedMonth(draftMonth);
+    setStartDate(draftStartDate);
+    setEndDate(draftEndDate);
+  };
+
+  const handleResetFilter = () => {
+    setDraftFY("ALL");
+    setDraftQuarter("ALL");
+    setDraftMonth("ALL");
+    setDraftStartDate("");
+    setDraftEndDate("");
+
+    setSelectedFY("ALL");
+    setSelectedQuarter("ALL");
+    setSelectedMonth("ALL");
+    setStartDate("");
+    setEndDate("");
+  };
 
   // Visual graph controls
   const [chartType, setChartType] = useState("wave"); // 'wave' | 'bar'
@@ -886,6 +923,19 @@ export default function Dashboard() {
     selectedMonth !== "ALL" ||
     Boolean(startDate) ||
     Boolean(endDate);
+
+  const activeFilterSummaryText = useMemo(() => {
+    const parts = [];
+    if (selectedFY !== "ALL") parts.push(selectedFY);
+    if (selectedQuarter !== "ALL") parts.push(selectedQuarter);
+    if (selectedMonth !== "ALL") parts.push(selectedMonth);
+    if (startDate || endDate) {
+      if (startDate && endDate) parts.push(`${startDate} to ${endDate}`);
+      else if (startDate) parts.push(`From ${startDate}`);
+      else parts.push(`Until ${endDate}`);
+    }
+    return parts.join(" · ");
+  }, [selectedFY, selectedQuarter, selectedMonth, startDate, endDate]);
 
   // Filtered cases dynamically based on FY, Quarter, Month, and Date Range
   const filteredCases = useMemo(() => {
@@ -1474,174 +1524,188 @@ export default function Dashboard() {
             2. FROSTED GLASS FILTER BAR
             ==================================================================== */}
         <div className="qla-filter-bar">
-          <div className="qla-filter-inputs">
-            {/* Financial Year */}
-            <div className="qla-filter-item">
-              <Filter size={14} className="qla-filter-icon" />
-              <select
-                className="qla-filter-select"
-                value={selectedFY}
-                onChange={(e) => setSelectedFY(e.target.value)}
-                aria-label="Filter by Financial Year"
-              >
-                <option value="ALL">All Financial Years</option>
-                {availableFYs.map((fy) => (
-                  <option key={fy} value={fy}>
-                    {fy}{fy === currentFY ? " (Current)" : ""}
-                  </option>
-                ))}
-              </select>
-            </div>
+          {/* Row 1: Period Presets & Active Scope Badge */}
+          <div className="qla-filter-row">
+            <div className="qla-filter-group">
+              <div className="qla-filter-section-title">
+                <Filter size={13} className="qla-filter-icon" />
+                <span>Period:</span>
+              </div>
 
-            {/* Quarter */}
-            <div className="qla-filter-item">
-              <select
-                className="qla-filter-select"
-                value={selectedQuarter}
-                onChange={(e) => setSelectedQuarter(e.target.value)}
-                aria-label="Filter by Quarter"
-              >
-                <option value="ALL">All Quarters</option>
-                <option value="Q1">Q1 (Apr – Jun)</option>
-                <option value="Q2">Q2 (Jul – Sep)</option>
-                <option value="Q3">Q3 (Oct – Dec)</option>
-                <option value="Q4">Q4 (Jan – Mar)</option>
-              </select>
-            </div>
-
-            {/* Month */}
-            <div className="qla-filter-item">
-              <select
-                className="qla-filter-select"
-                value={selectedMonth}
-                onChange={(e) => setSelectedMonth(e.target.value)}
-                aria-label="Filter by Month"
-              >
-                <option value="ALL">All Months</option>
-                <option value="Apr">April</option>
-                <option value="May">May</option>
-                <option value="Jun">June</option>
-                <option value="Jul">July</option>
-                <option value="Aug">August</option>
-                <option value="Sep">September</option>
-                <option value="Oct">October</option>
-                <option value="Nov">November</option>
-                <option value="Dec">December</option>
-                <option value="Jan">January</option>
-                <option value="Feb">February</option>
-                <option value="Mar">March</option>
-              </select>
-            </div>
-
-            {/* Unified Calendar Date Range Capsule */}
-            <div
-              className="qla-filter-item qla-date-range-capsule"
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 6,
-                padding: "3px 10px",
-                background: "#f8fafc",
-                border: "1px solid #e2e8f0",
-                borderRadius: 12,
-              }}
-            >
-              <Calendar size={14} style={{ color: "#16694a", flexShrink: 0 }} />
-              <input
-                type="date"
-                className="qla-filter-date-input"
-                style={{
-                  border: "none",
-                  background: "transparent",
-                  fontSize: "0.82rem",
-                  fontWeight: 600,
-                  color: "#0f172a",
-                  outline: "none",
-                  cursor: "pointer",
-                  fontFamily: "inherit",
-                  padding: "2px 0",
-                  width: "120px",
-                }}
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                onClick={(e) => {
-                  try {
-                    e.target.showPicker?.();
-                  } catch {}
-                }}
-                aria-label="From Date"
-                title="Click to select start date"
-              />
-              <span style={{ fontSize: "0.74rem", color: "#94a3b8", fontWeight: 700, textTransform: "uppercase" }}>to</span>
-              <input
-                type="date"
-                className="qla-filter-date-input"
-                style={{
-                  border: "none",
-                  background: "transparent",
-                  fontSize: "0.82rem",
-                  fontWeight: 600,
-                  color: "#0f172a",
-                  outline: "none",
-                  cursor: "pointer",
-                  fontFamily: "inherit",
-                  padding: "2px 0",
-                  width: "120px",
-                }}
-                value={endDate}
-                min={startDate || undefined}
-                onChange={(e) => setEndDate(e.target.value)}
-                onClick={(e) => {
-                  try {
-                    e.target.showPicker?.();
-                  } catch {}
-                }}
-                aria-label="To Date"
-                title="Click to select end date"
-              />
-              {(startDate || endDate) && (
-                <button
-                  type="button"
-                  style={{
-                    background: "none",
-                    border: "none",
-                    color: "#94a3b8",
-                    cursor: "pointer",
-                    padding: 2,
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    borderRadius: "50%",
-                    marginLeft: 2,
-                  }}
-                  onClick={() => {
-                    setStartDate("");
-                    setEndDate("");
-                  }}
-                  title="Clear custom date range"
-                  aria-label="Clear custom date range"
+              {/* Financial Year */}
+              <div className={`qla-filter-item ${draftFY !== "ALL" ? "qla-filter-item-active" : ""}`}>
+                <span className="qla-filter-label-prefix">FY:</span>
+                <select
+                  className="qla-filter-select"
+                  value={draftFY}
+                  onChange={(e) => setDraftFY(e.target.value)}
+                  aria-label="Filter by Financial Year"
                 >
-                  <X size={12} />
-                </button>
-              )}
+                  <option value="ALL">All Financial Years</option>
+                  {availableFYs.map((fy) => (
+                    <option key={fy} value={fy}>
+                      {fy}{fy === currentFY ? " (Current)" : ""}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Quarter */}
+              <div className={`qla-filter-item ${draftQuarter !== "ALL" ? "qla-filter-item-active" : ""}`}>
+                <span className="qla-filter-label-prefix">QTR:</span>
+                <select
+                  className="qla-filter-select"
+                  value={draftQuarter}
+                  onChange={(e) => setDraftQuarter(e.target.value)}
+                  aria-label="Filter by Quarter"
+                >
+                  <option value="ALL">All Quarters</option>
+                  <option value="Q1">Q1 (Apr – Jun)</option>
+                  <option value="Q2">Q2 (Jul – Sep)</option>
+                  <option value="Q3">Q3 (Oct – Dec)</option>
+                  <option value="Q4">Q4 (Jan – Mar)</option>
+                </select>
+              </div>
+
+              {/* Month */}
+              <div className={`qla-filter-item ${draftMonth !== "ALL" ? "qla-filter-item-active" : ""}`}>
+                <span className="qla-filter-label-prefix">Month:</span>
+                <select
+                  className="qla-filter-select"
+                  value={draftMonth}
+                  onChange={(e) => setDraftMonth(e.target.value)}
+                  aria-label="Filter by Month"
+                >
+                  <option value="ALL">All Months</option>
+                  <option value="Apr">April</option>
+                  <option value="May">May</option>
+                  <option value="Jun">June</option>
+                  <option value="Jul">July</option>
+                  <option value="Aug">August</option>
+                  <option value="Sep">September</option>
+                  <option value="Oct">October</option>
+                  <option value="Nov">November</option>
+                  <option value="Dec">December</option>
+                  <option value="Jan">January</option>
+                  <option value="Feb">February</option>
+                  <option value="Mar">March</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Scope / Active Filter Status Badge on Row 1 */}
+            <div className="qla-filter-status-badge">
+              <span
+                className="qla-filter-status-dot"
+                style={{ background: isFilterActive ? "#16694a" : "#94a3b8" }}
+              />
+              <span className="qla-filter-status-text">
+                {isFilterActive ? (
+                  <>
+                    <strong style={{ color: "#16694a" }}>Active:</strong> {activeFilterSummaryText}
+                  </>
+                ) : (
+                  <>
+                    <strong>Scope:</strong> All Enquiries · Full History
+                  </>
+                )}
+              </span>
             </div>
           </div>
 
-          <div className="qla-filter-buttons">
-            <button
-              className="qla-btn-ghost"
-              onClick={() => {
-                setSelectedFY("ALL");
-                setSelectedQuarter("ALL");
-                setSelectedMonth("ALL");
-                setStartDate("");
-                setEndDate("");
-              }}
-              title="Reset all filters"
-            >
-              <RotateCcw size={13} />
-              Reset
-            </button>
+          <div className="qla-filter-divider" />
+
+          {/* Row 2: Custom Date Range & Action Buttons */}
+          <div className="qla-filter-row">
+            <div className="qla-filter-group">
+              <div className="qla-filter-section-title">
+                <Calendar size={13} style={{ color: "#16694a" }} />
+                <span>Custom Date Range:</span>
+              </div>
+
+              <div className={`qla-filter-item ${draftStartDate ? "qla-filter-item-active" : ""}`}>
+                <span className="qla-filter-sublabel">From:</span>
+                <input
+                  type="date"
+                  className="qla-filter-date-input"
+                  value={draftStartDate}
+                  onChange={(e) => setDraftStartDate(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") handleApplyFilter(); }}
+                  onClick={(e) => {
+                    try {
+                      e.target.showPicker?.();
+                    } catch {}
+                  }}
+                  aria-label="Start date"
+                  title="Click to select start date"
+                />
+              </div>
+
+              <span className="qla-date-sep">to</span>
+
+              <div className={`qla-filter-item ${draftEndDate ? "qla-filter-item-active" : ""}`}>
+                <span className="qla-filter-sublabel">To:</span>
+                <input
+                  type="date"
+                  className="qla-filter-date-input"
+                  value={draftEndDate}
+                  min={draftStartDate || undefined}
+                  onChange={(e) => setDraftEndDate(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") handleApplyFilter(); }}
+                  onClick={(e) => {
+                    try {
+                      e.target.showPicker?.();
+                    } catch {}
+                  }}
+                  aria-label="End date"
+                  title="Click to select end date"
+                />
+              </div>
+
+              {(draftStartDate || draftEndDate) && (
+                <button
+                  type="button"
+                  className="qla-filter-clear-btn"
+                  onClick={() => {
+                    setDraftStartDate("");
+                    setDraftEndDate("");
+                  }}
+                  title="Clear custom date range"
+                >
+                  <X size={12} />
+                  <span>Clear Dates</span>
+                </button>
+              )}
+            </div>
+
+            {/* Action Buttons: Apply Filter & Reset on Row 2 */}
+            <div className="qla-filter-buttons">
+              {hasPendingChanges && (
+                <span className="qla-filter-pending-hint">
+                  Unapplied
+                </span>
+              )}
+              <button
+                type="button"
+                className={`qla-btn-primary qla-btn-apply ${hasPendingChanges ? "has-pending" : ""}`}
+                onClick={handleApplyFilter}
+                title="Apply selected filters"
+              >
+                <Check size={14} />
+                <span>Apply Filter</span>
+              </button>
+              <button
+                type="button"
+                className="qla-btn-ghost"
+                onClick={handleResetFilter}
+                disabled={!isFilterActive && !hasPendingChanges}
+                style={{ opacity: !isFilterActive && !hasPendingChanges ? 0.55 : 1 }}
+                title="Reset all filters to default"
+              >
+                <RotateCcw size={13} />
+                <span>Reset</span>
+              </button>
+            </div>
           </div>
         </div>
 
