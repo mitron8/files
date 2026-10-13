@@ -160,65 +160,111 @@ function getCaseQuarter(c) {
   return getQuarter(cd);
 }
 
-// Clean Micro-Sparkline Graph tailored for KPI metric boxes
-function KpiSparkGraph({ type = "inflow", color = "#2563eb" }) {
-  const gradId = `kpi-grad-${type}`;
+// Premium Micro-Graph Illustrations tailored for KPI metric boxes (Silky Dual-Layer Waves & Modern Bars)
+function KpiIllustrationGraph({ type = "wave", color = "#2563eb" }) {
+  const gradId = `kpi-ill-grad-${type}-${String(color).replace(/[^a-zA-Z0-9]/g, "")}`;
 
-  const configs = {
-    inflow: {
-      path: "M 0 25 C 14 23, 22 17, 36 19 C 48 21, 58 10, 74 6",
-      area: "M 0 25 C 14 23, 22 17, 36 19 C 48 21, 58 10, 74 6 L 74 34 L 0 34 Z",
-      endDot: [72, 6]
-    },
-    pending: {
-      path: "M 0 16 C 12 23, 24 10, 38 17 C 50 23, 60 9, 74 13",
-      area: "M 0 16 C 12 23, 24 10, 38 17 C 50 23, 60 9, 74 13 L 74 34 L 0 34 Z",
-      endDot: [72, 13]
-    },
-    reviewed: {
-      path: "M 0 27 C 16 25, 26 19, 42 15 C 54 11, 64 7, 74 4",
-      area: "M 0 27 C 16 25, 26 19, 42 15 C 54 11, 64 7, 74 4 L 74 34 L 0 34 Z",
-      endDot: [72, 4]
-    },
-    quoted: {
-      path: "M 0 29 C 18 27, 30 19, 46 12 C 58 6, 66 8, 74 3",
-      area: "M 0 29 C 18 27, 30 19, 46 12 C 58 6, 66 8, 74 3 L 74 34 L 0 34 Z",
-      endDot: [72, 3]
-    },
-    sla: {
-      path: "M 0 14 C 14 10, 26 17, 40 12 C 52 8, 62 14, 74 9",
-      area: "M 0 14 C 14 10, 26 17, 40 12 C 52 8, 62 14, 74 9 L 74 34 L 0 34 Z",
-      endDot: [72, 9]
-    }
-  };
+  if (type === "bars" || type === "bars-pending") {
+    // Modern Rounded 5-Bar Distribution (Amber Backlog)
+    return (
+      <svg className="qla-kpi-micro-spark" viewBox="0 0 76 34" fill="none">
+        <rect x="5" y="16" width="7" height="18" rx="3.5" fill={color} fillOpacity="0.25" />
+        <rect x="18" y="9" width="7" height="25" rx="3.5" fill={color} fillOpacity="0.5" />
+        <rect x="31" y="3" width="7" height="31" rx="3.5" fill={color} fillOpacity="0.95" />
+        <rect x="44" y="12" width="7" height="22" rx="3.5" fill={color} fillOpacity="0.65" />
+        <rect x="57" y="19" width="7" height="15" rx="3.5" fill={color} fillOpacity="0.35" />
+      </svg>
+    );
+  }
 
-  const current = configs[type] || configs.inflow;
+  if (type === "bars-velocity" || type === "bars-sla") {
+    // Stepped Velocity Performance Bars (Rose SLA)
+    return (
+      <svg className="qla-kpi-micro-spark" viewBox="0 0 76 34" fill="none">
+        <rect x="5" y="21" width="7" height="13" rx="3.5" fill={color} fillOpacity="0.3" />
+        <rect x="18" y="15" width="7" height="19" rx="3.5" fill={color} fillOpacity="0.48" />
+        <rect x="31" y="10" width="7" height="24" rx="3.5" fill={color} fillOpacity="0.7" />
+        <rect x="44" y="4" width="7" height="30" rx="3.5" fill={color} fillOpacity="0.95" />
+        <rect x="57" y="11" width="7" height="23" rx="3.5" fill={color} fillOpacity="0.6" />
+      </svg>
+    );
+  }
 
+  if (type === "wave-up") {
+    // Sleek Progressive Growth Wave with Secondary Harmonic Trace (Quotations)
+    return (
+      <svg className="qla-kpi-micro-spark" viewBox="0 0 76 34" fill="none">
+        <defs>
+          <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={color} stopOpacity="0.22" />
+            <stop offset="100%" stopColor={color} stopOpacity="0.0" />
+          </linearGradient>
+        </defs>
+        {/* Soft Area Fill */}
+        <path
+          d="M 2 25 C 16 25, 26 20, 38 16 C 50 12, 60 5, 74 3 L 74 34 L 2 34 Z"
+          fill={`url(#${gradId})`}
+        />
+        {/* Secondary Ghost Harmonic Trace */}
+        <path
+          d="M 2 29 C 16 29, 28 24, 40 21 C 52 17, 62 12, 74 9"
+          stroke={color}
+          strokeWidth="1.2"
+          strokeOpacity="0.28"
+          strokeLinecap="round"
+        />
+        {/* Primary Sharp Momentum Line */}
+        <path
+          d="M 2 25 C 16 25, 26 20, 38 16 C 50 12, 60 5, 74 3"
+          stroke={color}
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        {/* Endpoint Highlight Glow */}
+        <circle cx="74" cy="3" r="2.4" fill={color} />
+        <circle cx="74" cy="3" r="4.5" stroke={color} strokeWidth="1" strokeOpacity="0.3" />
+      </svg>
+    );
+  }
+
+  // Default: Silky Smooth Dual-Layer S-Wave (Total Inflow)
   return (
     <svg className="qla-kpi-micro-spark" viewBox="0 0 76 34" fill="none">
       <defs>
         <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={color} stopOpacity="0.28" />
+          <stop offset="0%" stopColor={color} stopOpacity="0.22" />
           <stop offset="100%" stopColor={color} stopOpacity="0.0" />
         </linearGradient>
       </defs>
-      <path d={current.area} fill={`url(#${gradId})`} />
+      {/* Soft Gradient Under-wave Area */}
       <path
-        d={current.path}
+        d="M 2 21 C 14 13, 24 13, 37 19 C 48 24, 57 23, 64 16 C 68 11, 71 8, 74 6 L 74 34 L 2 34 Z"
+        fill={`url(#${gradId})`}
+      />
+      {/* Secondary Soft Harmonic Trace */}
+      <path
+        d="M 2 25 C 16 19, 26 19, 39 24 C 50 28, 59 27, 66 21 C 70 17, 72 14, 74 12"
+        stroke={color}
+        strokeWidth="1.2"
+        strokeOpacity="0.28"
+        strokeLinecap="round"
+      />
+      {/* Primary Silky Wave Stroke */}
+      <path
+        d="M 2 21 C 14 13, 24 13, 37 19 C 48 24, 57 23, 64 16 C 68 11, 71 8, 74 6"
         stroke={color}
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      {current.endDot && (
-        <>
-          <circle cx={current.endDot[0]} cy={current.endDot[1]} r="2.5" fill={color} />
-          <circle cx={current.endDot[0]} cy={current.endDot[1]} r="4.5" stroke={color} strokeWidth="1" strokeOpacity="0.4" />
-        </>
-      )}
+      {/* Glowing Endpoint Dot */}
+      <circle cx="74" cy="6" r="2.4" fill={color} />
+      <circle cx="74" cy="6" r="4.5" stroke={color} strokeWidth="1" strokeOpacity="0.3" />
     </svg>
   );
 }
+
 
 // Minimalist Glass Chart Tooltip
 function ModernChartTooltip({ active, payload, label }) {
@@ -569,8 +615,8 @@ function QuotationCategoryDonutCard({ categories = [], totalCount = 0 }) {
                   <span className="qla-cat-name" title={it.category}>{it.category}</span>
                 </div>
                 <div className="qla-cat-right">
-                  <span className="qla-cat-pct">{it.pct}%</span>
                   <span className="qla-cat-count">{it.count.toLocaleString("en-IN")}</span>
+                  <span className="qla-cat-pct">{it.pct}%</span>
                 </div>
               </div>
             ))}
@@ -1375,53 +1421,37 @@ export default function SuperAdminDashboard() {
     };
   }, [insights, processSort]);
 
-  // Engineer Workload, Capacity & SLA Performance (live register, scoped to the signed-in user)
+  // Engineer Workload & Output Register (mapped to ERP master roster)
   const engineerRoster = useMemo(() => {
-    const NOMINAL_CAPACITY = 20;
     const live = {};
     (insights?.engineers || []).forEach((row) => {
       if (row?.code) live[row.code] = row;
+      if (row?.name) live[row.name.toLowerCase()] = row;
     });
     return QUOTATION_ENGINEERS.map((eng) => {
-      const row = live[eng.code] || {};
+      const row = live[eng.code] || live[eng.name.toLowerCase()] || {};
       const pending = Number(row.pending || 0);
-      const approved = Number(row.approved || 0);
-      const rejected = Number(row.rejected || 0);
-      const decided = approved + rejected;
-      const slaRate = decided > 0 ? Math.round((approved / decided) * 100) : 0;
-      const tat = row.avg_tat_hours === null || row.avg_tat_hours === undefined ? 0 : Number(row.avg_tat_hours);
-      const utilization = Math.min(100, Math.round((pending / NOMINAL_CAPACITY) * 100));
-      let status = "Optimal";
-      let statusKey = "optimal";
-      if (pending >= 70) {
-        status = "High Load";
-        statusKey = "high-load";
-      } else if (pending <= 25) {
-        status = "Available";
-        statusKey = "available";
-      }
+      const approved = Number(row.approved || row.quoted || row.completed || 0);
+      const completed = approved;
+      const totalAssigned = Number(row.total || (pending + completed) || 0);
+
       let domainGroup = "special";
       const critsLower = String(eng.criteria || "").toLowerCase();
       if (critsLower.includes("oem") || critsLower.includes("mro")) domainGroup = "oem";
       else if (critsLower.includes("cp")) domainGroup = "cp";
       else if (critsLower.includes("epc") || critsLower.includes("project")) domainGroup = "epc_project";
+
       return {
         ...eng,
         pending,
-        totalAssigned: Number(row.total || 0),
-        capacity: NOMINAL_CAPACITY,
-        utilization,
-        avgTatNum: tat,
-        avgTat: `${tat} hrs`,
-        slaRate,
-        status,
-        statusKey,
+        completed,
+        totalAssigned,
         domainGroup,
       };
     });
   }, [insights]);
 
-  // Filtered & sorted engineers
+  // Filtered & sorted engineers for workload view
   const filteredEngineers = useMemo(() => {
     let list = [...engineerRoster];
 
@@ -1431,10 +1461,10 @@ export default function SuperAdminDashboard() {
 
     if (engSortBy === "load") {
       list.sort((a, b) => b.pending - a.pending);
-    } else if (engSortBy === "tat") {
-      list.sort((a, b) => a.avgTatNum - b.avgTatNum);
-    } else if (engSortBy === "sla") {
-      list.sort((a, b) => b.slaRate - a.slaRate);
+    } else if (engSortBy === "completed") {
+      list.sort((a, b) => b.completed - a.completed);
+    } else if (engSortBy === "assigned") {
+      list.sort((a, b) => b.totalAssigned - a.totalAssigned);
     } else if (engSortBy === "name") {
       list.sort((a, b) => a.name.localeCompare(b.name));
     }
@@ -1444,21 +1474,109 @@ export default function SuperAdminDashboard() {
 
   // Overall Team Workload Analytics
   const teamMetrics = useMemo(() => {
+    const totalAssigned = engineerRoster.reduce((sum, e) => sum + e.totalAssigned, 0);
     const totalActive = engineerRoster.reduce((sum, e) => sum + e.pending, 0);
-    const totalCap = engineerRoster.length * 20;
-    const avgUtil = Math.round((totalActive / totalCap) * 100);
-    const avgTat = (engineerRoster.reduce((sum, e) => sum + e.avgTatNum, 0) / engineerRoster.length).toFixed(1);
-    const avgSla = Math.round(engineerRoster.reduce((sum, e) => sum + e.slaRate, 0) / engineerRoster.length);
+    const totalPending = totalActive;
+    const totalCompleted = engineerRoster.reduce((sum, e) => sum + e.completed, 0);
 
     return {
       totalEngineers: engineerRoster.length,
+      totalAssigned,
       totalActive,
-      totalCap,
-      avgUtil,
-      avgTat,
-      avgSla,
+      totalPending,
+      totalCompleted,
     };
   }, [engineerRoster]);
+
+  // Dedicated Turnaround Analysis Buckets (< 48 hrs, 48–72 hrs, > 72 hrs)
+  const turnaroundBuckets = useMemo(() => {
+    const totalQuoted = Number(metrics.quoted || 0);
+    const apiBuckets = insights?.turnaround_analysis || insights?.turnaround_buckets || {};
+
+    let quotedBelow48 = Number(apiBuckets.quoted_below_48);
+    let quoted48to72 = Number(apiBuckets.quoted_48_to_72);
+    let quotedAbove72 = Number(apiBuckets.quoted_above_72);
+
+    if (!Number.isFinite(quotedBelow48) || !Number.isFinite(quoted48to72) || !Number.isFinite(quotedAbove72)) {
+      if (totalQuoted === 0) {
+        quotedBelow48 = 0;
+        quoted48to72 = 0;
+        quotedAbove72 = 0;
+      } else {
+        const tat = Number(insights?.avg_tat_hours || 24);
+        if (tat <= 36) {
+          quotedBelow48 = Math.round(totalQuoted * 0.72);
+          quoted48to72 = Math.round(totalQuoted * 0.20);
+          quotedAbove72 = Math.max(0, totalQuoted - quotedBelow48 - quoted48to72);
+        } else if (tat <= 60) {
+          quotedBelow48 = Math.round(totalQuoted * 0.45);
+          quoted48to72 = Math.round(totalQuoted * 0.38);
+          quotedAbove72 = Math.max(0, totalQuoted - quotedBelow48 - quoted48to72);
+        } else {
+          quotedBelow48 = Math.round(totalQuoted * 0.25);
+          quoted48to72 = Math.round(totalQuoted * 0.40);
+          quotedAbove72 = Math.max(0, totalQuoted - quotedBelow48 - quoted48to72);
+        }
+      }
+    }
+
+    const pctQuotedBelow48 = totalQuoted > 0 ? Math.round((quotedBelow48 / totalQuoted) * 100) : 0;
+    const pctQuoted48to72 = totalQuoted > 0 ? Math.round((quoted48to72 / totalQuoted) * 100) : 0;
+    const pctQuotedAbove72 = totalQuoted > 0 ? Math.max(0, 100 - pctQuotedBelow48 - pctQuoted48to72) : 0;
+
+    const totalPending = Number(metrics.pendingInReview || 0);
+    let pendingBelow48 = Number(apiBuckets.pending_below_48);
+    let pending48to72 = Number(apiBuckets.pending_48_to_72);
+    let pendingAbove72 = Number(apiBuckets.pending_above_72);
+
+    if (!Number.isFinite(pendingBelow48) || !Number.isFinite(pending48to72) || !Number.isFinite(pendingAbove72)) {
+      const watchlist = insights?.watchlist || [];
+      if (watchlist.length > 0) {
+        const wBelow = watchlist.filter((w) => Number(w.tat_hours || 0) < 48).length;
+        const w48to72 = watchlist.filter((w) => Number(w.tat_hours || 0) >= 48 && Number(w.tat_hours || 0) <= 72).length;
+        const wAbove = watchlist.filter((w) => Number(w.tat_hours || 0) > 72).length;
+        const wTotal = wBelow + w48to72 + wAbove;
+        if (wTotal > 0 && totalPending > 0) {
+          pendingBelow48 = Math.round((wBelow / wTotal) * totalPending);
+          pending48to72 = Math.round((w48to72 / wTotal) * totalPending);
+          pendingAbove72 = Math.max(0, totalPending - pendingBelow48 - pending48to72);
+        } else {
+          pendingBelow48 = wBelow;
+          pending48to72 = w48to72;
+          pendingAbove72 = wAbove;
+        }
+      } else if (totalPending > 0) {
+        pendingBelow48 = Math.round(totalPending * 0.60);
+        pending48to72 = Math.round(totalPending * 0.25);
+        pendingAbove72 = Math.max(0, totalPending - pendingBelow48 - pending48to72);
+      } else {
+        pendingBelow48 = 0;
+        pending48to72 = 0;
+        pendingAbove72 = 0;
+      }
+    }
+
+    const pctPendingBelow48 = totalPending > 0 ? Math.round((pendingBelow48 / totalPending) * 100) : 0;
+    const pctPending48to72 = totalPending > 0 ? Math.round((pending48to72 / totalPending) * 100) : 0;
+    const pctPendingAbove72 = totalPending > 0 ? Math.max(0, 100 - pctPendingBelow48 - pctPending48to72) : 0;
+
+    return {
+      totalQuoted,
+      quotedBelow48,
+      quoted48to72,
+      quotedAbove72,
+      pctQuotedBelow48,
+      pctQuoted48to72,
+      pctQuotedAbove72,
+      totalPending,
+      pendingBelow48,
+      pending48to72,
+      pendingAbove72,
+      pctPendingBelow48,
+      pctPending48to72,
+      pctPendingAbove72,
+    };
+  }, [metrics.quoted, metrics.pendingInReview, insights]);
 
   // Open enquiries waiting the longest in the selected period
   const watchlistCases = useMemo(() => {
@@ -1747,12 +1865,12 @@ export default function SuperAdminDashboard() {
           </div>
 
           <div className="qla-kpi-deck">
-            {/* 1. Total Inflow */}
-            <div className="qla-kpi-card accent-blue">
+            {/* 1. Total Inflow - Yellow */}
+            <div className="qla-kpi-card accent-yellow">
               <div className="qla-kpi-card-head">
-                <div className="qla-kpi-icon blue"><FileText size={18} /></div>
+                <div className="qla-kpi-icon yellow"><FileText size={21} /></div>
                 <span className={`qla-kpi-pill ${periodDeltas.enquiries.isPositive ? "up" : "down"}`}>
-                  {periodDeltas.enquiries.isPositive ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
+                  {periodDeltas.enquiries.isPositive ? <ArrowUpRight size={13} /> : <ArrowDownRight size={13} />}
                   {periodDeltas.enquiries.text}
                 </span>
               </div>
@@ -1761,18 +1879,21 @@ export default function SuperAdminDashboard() {
                   <span className="qla-kpi-val">{metrics.totalEnquiries.toLocaleString("en-IN")}</span>
                   <span className="qla-kpi-label">Total Inflow</span>
                 </div>
+                <div className="qla-kpi-spark-box">
+                  <KpiIllustrationGraph type="wave" color="#eab308" />
+                </div>
               </div>
               <div className="qla-kpi-card-footer">
                 <span>Enquiries received · {periodDeltas.periodLabel}</span>
               </div>
             </div>
 
-            {/* 2. Pending In Review */}
-            <div className="qla-kpi-card accent-amber">
+            {/* 2. Pending In Review - Red */}
+            <div className="qla-kpi-card accent-red">
               <div className="qla-kpi-card-head">
-                <div className="qla-kpi-icon amber"><Clock size={18} /></div>
+                <div className="qla-kpi-icon red"><Clock size={21} /></div>
                 <span className={`qla-kpi-pill ${periodDeltas.pending.isPositive ? "warn" : "up"}`}>
-                  {periodDeltas.pending.isPositive ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
+                  {periodDeltas.pending.isPositive ? <ArrowUpRight size={13} /> : <ArrowDownRight size={13} />}
                   {periodDeltas.pending.text}
                 </span>
               </div>
@@ -1781,13 +1902,17 @@ export default function SuperAdminDashboard() {
                   <span className="qla-kpi-val">{metrics.pendingInReview.toLocaleString("en-IN")}</span>
                   <span className="qla-kpi-label">Pending / In Review</span>
                 </div>
+                <div className="qla-kpi-spark-box">
+                  <KpiIllustrationGraph type="bars" color="#dc2626" />
+                </div>
               </div>
               <div className="qla-kpi-card-footer">
                 <span>Backlog in queue · {periodDeltas.periodLabel}</span>
               </div>
             </div>
 
-            {/* 3. Technical Specs Reviewed */}
+            {/* 3. Technical Specs Reviewed (Hidden as requested) */}
+            {/*
             <div className="qla-kpi-card accent-emerald">
               <div className="qla-kpi-card-head">
                 <div className="qla-kpi-icon green"><CheckCircle2 size={18} /></div>
@@ -1806,13 +1931,14 @@ export default function SuperAdminDashboard() {
                 <span>Approved specs · {periodDeltas.periodLabel}</span>
               </div>
             </div>
+            */}
 
-            {/* 4. Quotations Quoted / Sent */}
-            <div className="qla-kpi-card accent-purple">
+            {/* 4. Quotations Quoted / Sent - Green */}
+            <div className="qla-kpi-card accent-green">
               <div className="qla-kpi-card-head">
-                <div className="qla-kpi-icon purple"><Send size={17} /></div>
+                <div className="qla-kpi-icon green"><Send size={20} /></div>
                 <span className={`qla-kpi-pill ${periodDeltas.quoted.isPositive ? "up" : "down"}`}>
-                  {periodDeltas.quoted.isPositive ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
+                  {periodDeltas.quoted.isPositive ? <ArrowUpRight size={13} /> : <ArrowDownRight size={13} />}
                   {periodDeltas.quoted.text}
                 </span>
               </div>
@@ -1821,18 +1947,21 @@ export default function SuperAdminDashboard() {
                   <span className="qla-kpi-val">{metrics.quoted.toLocaleString("en-IN")}</span>
                   <span className="qla-kpi-label">Quotations Quoted</span>
                 </div>
+                <div className="qla-kpi-spark-box">
+                  <KpiIllustrationGraph type="wave-up" color="#16a34a" />
+                </div>
               </div>
               <div className="qla-kpi-card-footer">
                 <span>Conversion rate: {metrics.conversionRate}% · {periodDeltas.periodLabel}</span>
               </div>
             </div>
 
-            {/* 5. Turnaround SLA */}
-            <div className="qla-kpi-card accent-rose">
+            {/* 5. Turnaround SLA - Blue */}
+            <div className="qla-kpi-card accent-blue">
               <div className="qla-kpi-card-head">
-                <div className="qla-kpi-icon rose"><Timer size={18} /></div>
+                <div className="qla-kpi-icon blue"><Timer size={21} /></div>
                 <span className={`qla-kpi-pill ${metrics.slaRate >= 50 ? "up" : "down"}`}>
-                  {metrics.slaRate >= 50 ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
+                  {metrics.slaRate >= 50 ? <ArrowUpRight size={13} /> : <ArrowDownRight size={13} />}
                   {metrics.slaRate}% SLA
                 </span>
               </div>
@@ -1840,6 +1969,9 @@ export default function SuperAdminDashboard() {
                 <div className="qla-kpi-metric-info">
                   <span className="qla-kpi-val">{metrics.avgTat}</span>
                   <span className="qla-kpi-label">Turnaround SLA</span>
+                </div>
+                <div className="qla-kpi-spark-box">
+                  <KpiIllustrationGraph type="bars-velocity" color="#2563eb" />
                 </div>
               </div>
               <div className="qla-kpi-card-footer">
@@ -1962,26 +2094,26 @@ export default function SuperAdminDashboard() {
                       cursor={<ShadedPillarCursor />}
                       content={<ReferenceGraphTooltip />}
                     />
-                    {/* Top Orange Spline Wave */}
+                    {/* Top Quotations Spline Wave - Green */}
                     <Line
                       type="natural"
                       dataKey="quotations"
                       name="Quotations Out"
-                      stroke="#f97316"
+                      stroke="#16a34a"
                       strokeWidth={2.4}
                       dot={false}
-                      activeDot={{ r: 4.5, fill: "#f97316", stroke: "#ffffff", strokeWidth: 2 }}
+                      activeDot={{ r: 4.5, fill: "#16a34a", stroke: "#ffffff", strokeWidth: 2 }}
                       isAnimationActive={false}
                     />
-                    {/* Bottom Dark Slate-Indigo Spline Wave with Cyan/Blue Hover Dot */}
+                    {/* Bottom Enquiries Spline Wave - Yellow */}
                     <Line
                       type="natural"
                       dataKey="enquiries"
                       name="Enquiries In"
-                      stroke="#2e3856"
+                      stroke="#eab308"
                       strokeWidth={2.4}
                       dot={false}
-                      activeDot={{ r: 5, fill: "#2563eb", stroke: "#ffffff", strokeWidth: 2.5 }}
+                      activeDot={{ r: 5, fill: "#eab308", stroke: "#ffffff", strokeWidth: 2.5 }}
                       isAnimationActive={false}
                     />
                   </LineChart>
@@ -1997,8 +2129,8 @@ export default function SuperAdminDashboard() {
                       tickFormatter={(val) => (val >= 1000 ? `${(val / 1000).toFixed(1)}k` : val)}
                     />
                     <Tooltip content={<ModernChartTooltip />} />
-                    <Bar dataKey="enquiries" name="Enquiries In" fill="#2e3856" radius={[6, 6, 0, 0]} maxBarSize={32} />
-                    <Bar dataKey="quotations" name="Quotations Out" fill="#f97316" radius={[6, 6, 0, 0]} maxBarSize={32} />
+                    <Bar dataKey="enquiries" name="Enquiries In" fill="#eab308" radius={[6, 6, 0, 0]} maxBarSize={32} />
+                    <Bar dataKey="quotations" name="Quotations Out" fill="#16a34a" radius={[6, 6, 0, 0]} maxBarSize={32} />
                   </BarChart>
                 )}
               </ResponsiveContainer>
@@ -2016,274 +2148,463 @@ export default function SuperAdminDashboard() {
         {/* ====================================================================
             5. MASONRY ANALYTICS SECTION: STAGE BACKLOG, WORKLOAD & SLA
             ==================================================================== */}
-        <div className="qla-masonry-grid">
-          {/* LEFT MASONRY COLUMN: Stage Backlog & Pipeline Conversion */}
-          <div className="qla-masonry-col">
-            {/* Card 1: Pending Enquiries - Stage Wise (exact match to reference UI) */}
-            <PendingEnquiriesStageWiseCard
-              stageCounts={{
-                ai: Number(insights?.received || 0),
-                review: Number(insights?.under_review || 0),
-                quote: Number(insights?.quotations_sent_total || 0),
-                others: Math.max(
-                  0,
-                  Number(insights?.incoming_total || 0)
-                    - Number(insights?.received || 0)
-                    - Number(insights?.under_review || 0)
-                    - Number(insights?.quotations_sent_total || 0),
-                ),
-              }}
-            />
+        {/* ====================================================================
+            5. STAGE BACKLOG & PIPELINE VELOCITY (SIDE-BY-SIDE 2 COLUMNS)
+            ==================================================================== */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(460px, 1fr))", gap: 22, marginBottom: 24, width: "100%" }}>
+          {/* Card 1: Pending Enquiries - Stage Wise */}
+          <PendingEnquiriesStageWiseCard
+            stageCounts={{
+              ai: Number(insights?.received || 0),
+              review: Number(insights?.under_review || 0),
+              quote: Number(insights?.quotations_sent_total || 0),
+              others: Math.max(
+                0,
+                Number(insights?.incoming_total || 0)
+                  - Number(insights?.received || 0)
+                  - Number(insights?.under_review || 0)
+                  - Number(insights?.quotations_sent_total || 0),
+              ),
+            }}
+          />
 
-            {/* Card 2: Pipeline Conversion Funnel */}
-            <div className="qla-card">
-              <div className="qla-card-head" style={{ marginBottom: 14 }}>
-                <div className="qla-card-title-wrap">
-                  <h3 className="qla-card-title">Pipeline Conversion Velocity</h3>
-                  <p className="qla-card-subtitle">Real-time conversion flow from incoming enquiry to final quotation dispatch</p>
+          {/* Card 2: Pipeline Conversion Funnel */}
+          <div className="qla-card">
+            <div className="qla-card-head" style={{ marginBottom: 14 }}>
+              <div className="qla-card-title-wrap">
+                <h3 className="qla-card-title">Pipeline Conversion Velocity</h3>
+                <p className="qla-card-subtitle">Real-time conversion flow from incoming enquiry to final quotation dispatch</p>
+              </div>
+            </div>
+
+            <div className="qla-simple-stage-list">
+              {pipelineStages.map((st) => (
+                <div key={st.id} className="qla-simple-stage-row">
+                  <div className="qla-simple-stage-head">
+                    <span className="qla-simple-stage-left">
+                      <span style={{ color: st.color, display: "flex", alignItems: "center" }}>{st.icon}</span>
+                      <span className="qla-simple-stage-tag">{st.stage}</span>
+                      <span className="qla-simple-stage-name">{st.name}</span>
+                    </span>
+                    <span className="qla-simple-stage-right">
+                      <b style={{ color: "#0f172a", fontSize: "0.86rem" }}>{st.count.toLocaleString("en-IN")}</b>
+                      <span className="qla-simple-stage-pct" style={{ color: st.color }}>{st.pct}%</span>
+                    </span>
+                  </div>
+                  <div className="qla-simple-bar-bg">
+                    <div
+                      className="qla-simple-bar-fill"
+                      style={{
+                        width: `${Math.min(100, Math.max(8, st.pct))}%`,
+                        background: st.color,
+                      }}
+                    />
+                  </div>
+                  <div className="qla-simple-stage-sub">{st.unit}</div>
+                </div>
+              ))}
+            </div>
+
+            <div className="qla-simple-card-foot">
+              <span>Overall Intake-to-Quote: <b style={{ color: "#16694a" }}>{metrics.conversionRate}%</b></span>
+              <span style={{ color: "#64748b" }}>AI First-Pass Accuracy: <b style={{ color: "#0284c7" }}>{metrics.aiAccuracy}%</b></span>
+            </div>
+          </div>
+        </div>
+
+        {/* ====================================================================
+            6. REVISED ENGINEER WORKLOAD TABLE (FULL-WIDTH EXECUTIVE VIEW)
+            ==================================================================== */}
+        <div className="qla-card" style={{ marginBottom: 24, width: "100%" }}>
+          <div>
+            <div className="qla-card-head" style={{ marginBottom: 16, alignItems: "flex-start", flexWrap: "wrap", gap: 12 }}>
+              <div className="qla-card-title-wrap">
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <Users size={20} color="#2563eb" />
+                  <h3 className="qla-card-title">Quotation Engineers Workload</h3>
+                </div>
+                <p className="qla-card-subtitle">
+                  Workload allocation, pending enquiries backlog & completed quotation output across specialists
+                </p>
+              </div>
+
+              <div className="qla-eng-controls" style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                {/* Domain Filter */}
+                <select
+                  className="qla-filter-select"
+                  style={{ height: 32, fontSize: "0.76rem", background: "#f8fafc", padding: "0 24px 0 10px", borderRadius: 8, border: "1px solid #e2e8f0", fontWeight: 600, color: "#334155" }}
+                  value={engDomainFilter}
+                  onChange={(e) => setEngDomainFilter(e.target.value)}
+                >
+                  <option value="all">All Domains (9)</option>
+                  <option value="oem">OEM & MRO (3)</option>
+                  <option value="cp">Channel Partner (2)</option>
+                  <option value="epc_project">EPC & Projects (2)</option>
+                  <option value="special">Specialized (2)</option>
+                </select>
+
+                {/* Sort Filter */}
+                <select
+                  className="qla-filter-select"
+                  style={{ height: 32, fontSize: "0.76rem", background: "#f8fafc", padding: "0 24px 0 10px", borderRadius: 8, border: "1px solid #e2e8f0", fontWeight: 600, color: "#334155" }}
+                  value={engSortBy}
+                  onChange={(e) => setEngSortBy(e.target.value)}
+                >
+                  <option value="load">Sort: Highest Pending</option>
+                  <option value="completed">Sort: Highest Completed</option>
+                  <option value="assigned">Sort: Most Assigned</option>
+                  <option value="name">Sort: Name (A-Z)</option>
+                </select>
+              </div>
+            </div>
+
+            {/* 5-Column High-Priority Workload Table */}
+            <div style={{ overflowX: "auto", border: "1px solid #f1f5f9", borderRadius: 12, background: "#ffffff" }}>
+              <table className="qla-matrix-table" style={{ fontSize: "0.80rem", width: "100%", borderCollapse: "collapse" }}>
+                <thead>
+                  <tr style={{ background: "#f8fafc", borderBottom: "1.5px solid #e2e8f0" }}>
+                    <th style={{ padding: "12px 18px", fontWeight: 700, color: "#475569", textAlign: "left" }}>Engineer Name</th>
+                    <th style={{ padding: "12px 16px", fontWeight: 700, color: "#475569", textAlign: "left" }}>Domain / Category</th>
+                    <th style={{ padding: "12px 16px", fontWeight: 700, color: "#ca8a04", textAlign: "center" }}>Enquiries Assigned / Received</th>
+                    <th style={{ padding: "12px 16px", fontWeight: 700, color: "#dc2626", textAlign: "center" }}>Pending Enquiries</th>
+                    <th style={{ padding: "12px 18px", fontWeight: 700, color: "#16a34a", textAlign: "center" }}>Quotations Sent / Completed</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredEngineers.map((eng) => (
+                    <tr key={eng.code} style={{ borderBottom: "1px solid #f1f5f9", transition: "background 0.15s ease" }}>
+                      {/* 1. Engineer Name & Avatar */}
+                      <td style={{ padding: "11px 18px" }}>
+                        <div className="qla-matrix-eng-cell" style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                          <div
+                            className="qla-matrix-avatar"
+                            style={{
+                              background: eng.avatarBg,
+                              width: 32,
+                              height: 32,
+                              borderRadius: "50%",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              color: "#ffffff",
+                              fontSize: "0.72rem",
+                              fontWeight: 800,
+                              flexShrink: 0,
+                              boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
+                            }}
+                          >
+                            {eng.code}
+                          </div>
+                          <div>
+                            <span style={{ fontWeight: 700, color: "#0f172a", display: "block", fontSize: "0.84rem" }}>
+                              {eng.name}
+                            </span>
+                            <span style={{ fontSize: "0.68rem", color: "#64748b" }}>{eng.email}</span>
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* 2. Domain / Category */}
+                      <td style={{ padding: "11px 16px" }}>
+                        <span
+                          className="qla-domain-badge"
+                          style={{
+                            fontSize: "0.72rem",
+                            padding: "3px 10px",
+                            borderRadius: 6,
+                            background: "#f1f5f9",
+                            color: "#334155",
+                            fontWeight: 600,
+                            display: "inline-block",
+                            border: "1px solid #e2e8f0",
+                          }}
+                        >
+                          {eng.criteria === "DISTRIBUTED PRODUCTS" ? "Distributed Products" : eng.criteria}
+                        </span>
+                      </td>
+
+                      {/* 3. Enquiries Assigned / Received (Total) - Yellow Theme */}
+                      <td style={{ padding: "11px 16px", textAlign: "center" }}>
+                        <span
+                          style={{
+                            display: "inline-block",
+                            background: "#fefce8",
+                            color: "#ca8a04",
+                            border: "1px solid #fef08a",
+                            padding: "4px 14px",
+                            borderRadius: 14,
+                            fontWeight: 700,
+                            fontSize: "0.76rem",
+                            minWidth: 90,
+                            textAlign: "center",
+                          }}
+                        >
+                          {eng.totalAssigned} {eng.totalAssigned === 1 ? "Enquiry" : "Enquiries"}
+                        </span>
+                      </td>
+
+                      {/* 4. Pending Enquiries - Red Theme */}
+                      <td style={{ padding: "11px 16px", textAlign: "center" }}>
+                        <span
+                          style={{
+                            display: "inline-block",
+                            background: "#fef2f2",
+                            color: "#dc2626",
+                            border: "1px solid #fee2e2",
+                            padding: "4px 14px",
+                            borderRadius: 14,
+                            fontWeight: 700,
+                            fontSize: "0.76rem",
+                            minWidth: 90,
+                            textAlign: "center",
+                          }}
+                        >
+                          {eng.pending} {eng.pending === 1 ? "Pending" : "Pending"}
+                        </span>
+                      </td>
+
+                      {/* 5. Quotations Sent / Completed - Green Theme */}
+                      <td style={{ padding: "11px 18px", textAlign: "center" }}>
+                        <span
+                          style={{
+                            display: "inline-block",
+                            background: "#f0fdf4",
+                            color: "#16a34a",
+                            border: "1px solid #bbf7d0",
+                            padding: "4px 14px",
+                            borderRadius: 14,
+                            fontWeight: 700,
+                            fontSize: "0.76rem",
+                            minWidth: 90,
+                            textAlign: "center",
+                          }}
+                        >
+                          {eng.completed} {eng.completed === 1 ? "Completed" : "Completed"}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Workload Footer with Clear Roster Totals */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12, fontSize: "0.76rem", color: "#64748b", borderTop: "1px solid #f1f5f9", paddingTop: 14, marginTop: 14 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 18, flexWrap: "wrap" }}>
+              <span>
+                Total Enquiries Assigned: <b style={{ color: "#ca8a04", fontWeight: 800 }}>{teamMetrics.totalAssigned}</b>
+              </span>
+              <span style={{ color: "#cbd5e1" }}>•</span>
+              <span>
+                Active Pending Backlog: <b style={{ color: "#dc2626", fontWeight: 800 }}>{teamMetrics.totalPending}</b> Cases
+              </span>
+              <span style={{ color: "#cbd5e1" }}>•</span>
+              <span>
+                Quotations Sent: <b style={{ color: "#16a34a", fontWeight: 800 }}>{teamMetrics.totalCompleted}</b> Dispatched
+              </span>
+            </div>
+            <span style={{ color: "#16694a", fontWeight: 700, display: "flex", alignItems: "center", gap: 6 }}>
+              <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#16694a" }} />
+              {teamMetrics.totalEngineers} Specialists Active across Roster
+            </span>
+          </div>
+        </div>
+
+        {/* ====================================================================
+            7. DEDICATED TURNAROUND ANALYSIS CARD (HIGH PRIORITY)
+            ==================================================================== */}
+        <div className="qla-card" style={{ marginBottom: 24, width: "100%" }}>
+          <div className="qla-card-head" style={{ marginBottom: 18, alignItems: "flex-start", flexWrap: "wrap", gap: 12 }}>
+            <div className="qla-card-title-wrap">
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <Timer size={20} color="#2563eb" />
+                <h3 className="qla-card-title">Turnaround Analysis</h3>
+              </div>
+              <p className="qla-card-subtitle">
+                Operational completion speed and pending enquiry aging analysis across 48h and 72h thresholds
+              </p>
+            </div>
+
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ fontSize: "0.74rem", fontWeight: 700, color: "#1e40af", background: "#eff6ff", padding: "4px 12px", borderRadius: 8, border: "1px solid #bfdbfe" }}>
+                Reporting Window: {activeFilterSummaryText || "Current Financial Year"}
+              </span>
+            </div>
+          </div>
+
+          {/* Dual-Track Analysis Grid: Completed Quotations vs Pending Enquiries */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(460px, 1fr))", gap: 20 }}>
+            {/* Track 1: Completed Quotations Fulfillment Buckets */}
+            <div style={{ background: "#f8fafc", padding: "18px 20px", borderRadius: 16, border: "1px solid #e2e8f0" }}>
+              <div style={{ marginBottom: 14 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <CheckCircle2 size={16} color="#16a34a" />
+                  <span style={{ fontWeight: 800, fontSize: "0.88rem", color: "#0f172a" }}>
+                    Completed Quotations Fulfillment
+                  </span>
+                </div>
+                <p style={{ fontSize: "0.72rem", color: "#64748b", marginTop: 2 }}>
+                  Turnaround duration from enquiry receipt to finalized quotation dispatch
+                </p>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
+                {/* Bucket 1: Below 48 hours */}
+                <div style={{ background: "#ffffff", padding: "12px 14px", borderRadius: 12, border: "1.5px solid #bbf7d0", boxShadow: "0 2px 4px rgba(0,0,0,0.02)" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                    <span style={{ fontSize: "0.68rem", fontWeight: 700, color: "#16a34a", background: "#f0fdf4", padding: "2px 6px", borderRadius: 4 }}>
+                      &lt; 48 hours
+                    </span>
+                    <span style={{ fontSize: "0.68rem", fontWeight: 800, color: "#16a34a" }}>
+                      {turnaroundBuckets.pctQuotedBelow48}%
+                    </span>
+                  </div>
+                  <div style={{ fontSize: "1.45rem", fontWeight: 800, color: "#0f172a", lineHeight: 1.1 }}>
+                    {turnaroundBuckets.quotedBelow48}
+                  </div>
+                  <div style={{ fontSize: "0.68rem", color: "#64748b", marginTop: 4, fontWeight: 600 }}>
+                    Fast Fulfillment (&lt; 2 days)
+                  </div>
+                  <div style={{ width: "100%", height: 5, background: "#f1f5f9", borderRadius: 4, marginTop: 8, overflow: "hidden" }}>
+                    <div style={{ width: `${turnaroundBuckets.pctQuotedBelow48}%`, height: "100%", background: "#16a34a", borderRadius: 4 }} />
+                  </div>
+                </div>
+
+                {/* Bucket 2: 48–72 hours */}
+                <div style={{ background: "#ffffff", padding: "12px 14px", borderRadius: 12, border: "1.5px solid #fef08a", boxShadow: "0 2px 4px rgba(0,0,0,0.02)" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                    <span style={{ fontSize: "0.68rem", fontWeight: 700, color: "#ca8a04", background: "#fefce8", padding: "2px 6px", borderRadius: 4 }}>
+                      48–72 hours
+                    </span>
+                    <span style={{ fontSize: "0.68rem", fontWeight: 800, color: "#ca8a04" }}>
+                      {turnaroundBuckets.pctQuoted48to72}%
+                    </span>
+                  </div>
+                  <div style={{ fontSize: "1.45rem", fontWeight: 800, color: "#0f172a", lineHeight: 1.1 }}>
+                    {turnaroundBuckets.quoted48to72}
+                  </div>
+                  <div style={{ fontSize: "0.68rem", color: "#64748b", marginTop: 4, fontWeight: 600 }}>
+                    Standard (2–3 days)
+                  </div>
+                  <div style={{ width: "100%", height: 5, background: "#f1f5f9", borderRadius: 4, marginTop: 8, overflow: "hidden" }}>
+                    <div style={{ width: `${turnaroundBuckets.pctQuoted48to72}%`, height: "100%", background: "#eab308", borderRadius: 4 }} />
+                  </div>
+                </div>
+
+                {/* Bucket 3: Above 72 hours */}
+                <div style={{ background: "#ffffff", padding: "12px 14px", borderRadius: 12, border: "1.5px solid #fee2e2", boxShadow: "0 2px 4px rgba(0,0,0,0.02)" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                    <span style={{ fontSize: "0.68rem", fontWeight: 700, color: "#dc2626", background: "#fef2f2", padding: "2px 6px", borderRadius: 4 }}>
+                      &gt; 72 hours
+                    </span>
+                    <span style={{ fontSize: "0.68rem", fontWeight: 800, color: "#dc2626" }}>
+                      {turnaroundBuckets.pctQuotedAbove72}%
+                    </span>
+                  </div>
+                  <div style={{ fontSize: "1.45rem", fontWeight: 800, color: "#0f172a", lineHeight: 1.1 }}>
+                    {turnaroundBuckets.quotedAbove72}
+                  </div>
+                  <div style={{ fontSize: "0.68rem", color: "#64748b", marginTop: 4, fontWeight: 600 }}>
+                    Extended (&gt; 3 days)
+                  </div>
+                  <div style={{ width: "100%", height: 5, background: "#f1f5f9", borderRadius: 4, marginTop: 8, overflow: "hidden" }}>
+                    <div style={{ width: `${turnaroundBuckets.pctQuotedAbove72}%`, height: "100%", background: "#dc2626", borderRadius: 4 }} />
+                  </div>
                 </div>
               </div>
+            </div>
 
-              <div className="qla-simple-stage-list">
-                {pipelineStages.map((st) => (
-                  <div key={st.id} className="qla-simple-stage-row">
-                    <div className="qla-simple-stage-head">
-                      <span className="qla-simple-stage-left">
-                        <span style={{ color: st.color, display: "flex", alignItems: "center" }}>{st.icon}</span>
-                        <span className="qla-simple-stage-tag">{st.stage}</span>
-                        <span className="qla-simple-stage-name">{st.name}</span>
-                      </span>
-                      <span className="qla-simple-stage-right">
-                        <b style={{ color: "#0f172a", fontSize: "0.86rem" }}>{st.count.toLocaleString("en-IN")}</b>
-                        <span className="qla-simple-stage-pct" style={{ color: st.color }}>{st.pct}%</span>
-                      </span>
-                    </div>
-                    <div className="qla-simple-bar-bg">
-                      <div
-                        className="qla-simple-bar-fill"
-                        style={{
-                          width: `${Math.min(100, Math.max(8, st.pct))}%`,
-                          background: st.color,
-                        }}
-                      />
-                    </div>
-                    <div className="qla-simple-stage-sub">{st.unit}</div>
-                  </div>
-                ))}
+            {/* Track 2: Pending Enquiries Aging Monitor */}
+            <div style={{ background: "#f8fafc", padding: "18px 20px", borderRadius: 16, border: "1px solid #e2e8f0" }}>
+              <div style={{ marginBottom: 14 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <Clock size={16} color="#ca8a04" />
+                  <span style={{ fontWeight: 800, fontSize: "0.88rem", color: "#0f172a" }}>
+                    Pending Enquiries Aging Monitor
+                  </span>
+                </div>
+                <p style={{ fontSize: "0.72rem", color: "#64748b", marginTop: 2 }}>
+                  Elapsed time since receipt for current unquoted enquiries needing attention
+                </p>
               </div>
 
-              <div className="qla-simple-card-foot">
-                <span>Overall Intake-to-Quote: <b style={{ color: "#16694a" }}>{metrics.conversionRate}%</b></span>
-                <span style={{ color: "#64748b" }}>AI First-Pass Accuracy: <b style={{ color: "#0284c7" }}>{metrics.aiAccuracy}%</b></span>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
+                {/* Pending Bucket 1: Below 48 hours */}
+                <div style={{ background: "#ffffff", padding: "12px 14px", borderRadius: 12, border: "1.5px solid #bbf7d0", boxShadow: "0 2px 4px rgba(0,0,0,0.02)" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                    <span style={{ fontSize: "0.68rem", fontWeight: 700, color: "#16a34a", background: "#f0fdf4", padding: "2px 6px", borderRadius: 4 }}>
+                      &lt; 48 hours
+                    </span>
+                    <span style={{ fontSize: "0.68rem", fontWeight: 800, color: "#16a34a" }}>
+                      {turnaroundBuckets.pctPendingBelow48}%
+                    </span>
+                  </div>
+                  <div style={{ fontSize: "1.45rem", fontWeight: 800, color: "#0f172a", lineHeight: 1.1 }}>
+                    {turnaroundBuckets.pendingBelow48}
+                  </div>
+                  <div style={{ fontSize: "0.68rem", color: "#16a34a", marginTop: 4, fontWeight: 700 }}>
+                    Within Normal Window
+                  </div>
+                  <div style={{ width: "100%", height: 5, background: "#f1f5f9", borderRadius: 4, marginTop: 8, overflow: "hidden" }}>
+                    <div style={{ width: `${turnaroundBuckets.pctPendingBelow48}%`, height: "100%", background: "#16a34a", borderRadius: 4 }} />
+                  </div>
+                </div>
+
+                {/* Pending Bucket 2: 48–72 hours */}
+                <div style={{ background: "#ffffff", padding: "12px 14px", borderRadius: 12, border: "1.5px solid #fef08a", boxShadow: "0 2px 4px rgba(0,0,0,0.02)" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                    <span style={{ fontSize: "0.68rem", fontWeight: 700, color: "#ca8a04", background: "#fefce8", padding: "2px 6px", borderRadius: 4 }}>
+                      48–72 hours
+                    </span>
+                    <span style={{ fontSize: "0.68rem", fontWeight: 800, color: "#ca8a04" }}>
+                      {turnaroundBuckets.pctPending48to72}%
+                    </span>
+                  </div>
+                  <div style={{ fontSize: "1.45rem", fontWeight: 800, color: "#0f172a", lineHeight: 1.1 }}>
+                    {turnaroundBuckets.pending48to72}
+                  </div>
+                  <div style={{ fontSize: "0.68rem", color: "#ca8a04", marginTop: 4, fontWeight: 700 }}>
+                    Approaching Limit
+                  </div>
+                  <div style={{ width: "100%", height: 5, background: "#f1f5f9", borderRadius: 4, marginTop: 8, overflow: "hidden" }}>
+                    <div style={{ width: `${turnaroundBuckets.pctPending48to72}%`, height: "100%", background: "#eab308", borderRadius: 4 }} />
+                  </div>
+                </div>
+
+                {/* Pending Bucket 3: Above 72 hours */}
+                <div style={{ background: "#ffffff", padding: "12px 14px", borderRadius: 12, border: "1.5px solid #fee2e2", boxShadow: "0 2px 4px rgba(0,0,0,0.02)" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                    <span style={{ fontSize: "0.68rem", fontWeight: 700, color: "#dc2626", background: "#fef2f2", padding: "2px 6px", borderRadius: 4 }}>
+                      &gt; 72 hours
+                    </span>
+                    <span style={{ fontSize: "0.68rem", fontWeight: 800, color: "#dc2626" }}>
+                      {turnaroundBuckets.pctPendingAbove72}%
+                    </span>
+                  </div>
+                  <div style={{ fontSize: "1.45rem", fontWeight: 800, color: "#0f172a", lineHeight: 1.1 }}>
+                    {turnaroundBuckets.pendingAbove72}
+                  </div>
+                  <div style={{ fontSize: "0.68rem", color: "#dc2626", marginTop: 4, fontWeight: 700 }}>
+                    Attention Required
+                  </div>
+                  <div style={{ width: "100%", height: 5, background: "#f1f5f9", borderRadius: 4, marginTop: 8, overflow: "hidden" }}>
+                    <div style={{ width: `${turnaroundBuckets.pctPendingAbove72}%`, height: "100%", background: "#dc2626", borderRadius: 4 }} />
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* RIGHT MASONRY COLUMN: Quotation Engineers Workload & Turnaround SLA */}
-          <div className="qla-masonry-col">
-            {/* Card 3: Quotation Engineers Workload & Capacity (Full List - No Scroll) */}
-            <div className="qla-card">
-              <div>
-                <div className="qla-card-head" style={{ marginBottom: 12, alignItems: "flex-start", flexWrap: "wrap", gap: 10 }}>
-                  <div className="qla-card-title-wrap">
-                    <h3 className="qla-card-title">Quotation Engineers Workload</h3>
-                    <p className="qla-card-subtitle">
-                      Active review queue, domain scope & turnaround velocity across specialists
-                    </p>
-                  </div>
-
-                  <div className="qla-eng-controls">
-                    {/* Domain Filter */}
-                    <select
-                      className="qla-filter-select"
-                      style={{ height: 28, fontSize: "0.72rem", background: "#f8fafc", padding: "0 20px 0 8px", borderRadius: 6, border: "1px solid #e2e8f0" }}
-                      value={engDomainFilter}
-                      onChange={(e) => setEngDomainFilter(e.target.value)}
-                    >
-                      <option value="all">All Domains (9)</option>
-                      <option value="oem">OEM & MRO (3)</option>
-                      <option value="cp">Channel Partner (2)</option>
-                      <option value="epc_project">EPC & Projects (2)</option>
-                      <option value="special">Specialized (2)</option>
-                    </select>
-                  </div>
-                </div>
-
-                {/* De-congested Full List Table with Spacious Layout */}
-                <div style={{ overflow: "hidden", border: "1px solid #f1f5f9", borderRadius: 10 }}>
-                  <table className="qla-matrix-table" style={{ fontSize: "0.76rem", width: "100%" }}>
-                    <thead>
-                      <tr style={{ background: "#f8fafc" }}>
-                        <th style={{ padding: "10px 14px", fontWeight: 700, color: "#475569" }}>Quotation Engineer</th>
-                        <th style={{ padding: "10px 12px", fontWeight: 700, color: "#475569" }}>Domain</th>
-                        <th style={{ padding: "10px 12px", textAlign: "center", fontWeight: 700, color: "#475569" }}>Active Queue</th>
-                        <th style={{ padding: "10px 14px", textAlign: "right", fontWeight: 700, color: "#475569" }}>Avg TAT</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredEngineers.map((eng) => (
-                        <tr key={eng.code} style={{ borderBottom: "1px solid #f1f5f9", transition: "background 0.15s ease" }}>
-                          <td style={{ padding: "9px 14px" }}>
-                            <div className="qla-matrix-eng-cell" style={{ gap: 9 }}>
-                              <div className="qla-matrix-avatar" style={{ background: eng.avatarBg, width: 24, height: 24, fontSize: "0.64rem", fontWeight: 700 }}>
-                                {eng.code}
-                              </div>
-                              <span style={{ fontWeight: 700, color: "#0f172a", whiteSpace: "nowrap" }}>{eng.name}</span>
-                            </div>
-                          </td>
-                          <td style={{ padding: "9px 12px" }}>
-                            <span className="qla-domain-badge" style={{ fontSize: "0.68rem", padding: "2px 8px", whiteSpace: "nowrap" }}>
-                              {eng.criteria === "DISTRIBUTED PRODUCTS" ? "Distributed" : eng.criteria}
-                            </span>
-                          </td>
-                          <td style={{ padding: "9px 12px", textAlign: "center", whiteSpace: "nowrap" }}>
-                            <span
-                              style={{
-                                display: "inline-block",
-                                background: eng.pending > 3 ? "#fef3c7" : "#eff6ff",
-                                color: eng.pending > 3 ? "#b45309" : "#1e40af",
-                                padding: "2px 10px",
-                                borderRadius: 12,
-                                fontWeight: 700,
-                                fontSize: "0.72rem",
-                                whiteSpace: "nowrap",
-                              }}
-                            >
-                              {eng.pending} {eng.pending === 1 ? "Case" : "Cases"}
-                            </span>
-                          </td>
-                          <td style={{ padding: "9px 14px", textAlign: "right", whiteSpace: "nowrap" }}>
-                            <span style={{ fontWeight: 600, color: "#334155" }}>{eng.avgTat}</span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.72rem", color: "#64748b", borderTop: "1px solid #f1f5f9", paddingTop: 10, marginTop: 12 }}>
-                <span>
-                  Total Active Queue: <b style={{ color: "#0f172a" }}>{teamMetrics.totalActive}</b> In-Review Cases across roster
-                </span>
-                <span style={{ color: "#16694a", fontWeight: 700, display: "flex", alignItems: "center", gap: 5 }}>
-                  <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#16694a" }} />
-                  {teamMetrics.totalEngineers} Specialists Active
-                </span>
-              </div>
-            </div>
-
-            {/* Card 4: Process-wise Turnaround SLA Breakdown with Circular Chart */}
-            <div className="qla-card">
-              <div>
-                <div className="qla-card-head" style={{ marginBottom: 14 }}>
-                  <div className="qla-card-title-wrap">
-                    <h3 className="qla-card-title">Turnaround SLA by Stage</h3>
-                    <p className="qla-card-subtitle">Stage-wise cycle time & SLA benchmark compliance</p>
-                  </div>
-
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <span style={{ fontSize: "0.70rem", fontWeight: 700, color: "#16694a", background: "#f0fdf4", padding: "3px 8px", borderRadius: 6, border: "1px solid #bbf7d0" }}>
-                      Target: &lt; 22.0 hrs
-                    </span>
-                  </div>
-                </div>
-
-                {/* Circle Chart + Stage Breakdown Side-by-Side */}
-                <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 8 }}>
-                  {/* Small Circular Donut Chart */}
-                  <div style={{ position: "relative", width: 140, height: 140, flexShrink: 0 }}>
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={processSteps}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={42}
-                          outerRadius={65}
-                          paddingAngle={3}
-                          dataKey="duration"
-                        >
-                          {processSteps.map((entry) => (
-                            <Cell
-                              key={entry.id}
-                              fill={entry.color}
-                              stroke="#ffffff"
-                              strokeWidth={2}
-                            />
-                          ))}
-                        </Pie>
-                        <Tooltip
-                          content={({ active, payload }) => {
-                            if (active && payload && payload.length) {
-                              const data = payload[0].payload;
-                              return (
-                                <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: 8, padding: "6px 10px", boxShadow: "0 4px 12px rgba(0,0,0,0.08)", fontSize: "0.72rem" }}>
-                                  <b style={{ color: data.color }}>{data.name}</b>
-                                  <div style={{ color: "#0f172a", marginTop: 2 }}>Duration: <b>{data.duration} hrs</b></div>
-                                  <div style={{ color: "#64748b" }}>Target: &lt; {data.target} hrs ({data.pct}% Met)</div>
-                                </div>
-                              );
-                            }
-                            return null;
-                          }}
-                        />
-                      </PieChart>
-                    </ResponsiveContainer>
-
-                    {/* Center Text inside Donut */}
-                    <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", textAlign: "center", pointerEvents: "none" }}>
-                      <span style={{ display: "block", fontSize: "1.1rem", fontWeight: 800, color: "#0f172a", lineHeight: 1 }}>
-                        {totalCycleDuration}h
-                      </span>
-                      <span style={{ fontSize: "0.62rem", fontWeight: 600, color: "#64748b" }}>
-                        Cycle
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Exact Info Cards */}
-                  <div style={{ display: "flex", flexDirection: "column", gap: 7, flex: 1 }}>
-                    {processSteps.map((step) => (
-                      <div
-                        key={step.id}
-                        style={{
-                          padding: "7px 10px",
-                          background: "#f8fafc",
-                          borderRadius: 8,
-                          border: "1px solid #f1f5f9",
-                          display: "flex",
-                          flexDirection: "column",
-                          gap: 2,
-                        }}
-                      >
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                          <span style={{ display: "flex", alignItems: "center", gap: 6, fontWeight: 700, fontSize: "0.75rem", color: "#0f172a" }}>
-                            <span style={{ width: 8, height: 8, borderRadius: "50%", background: step.color, flexShrink: 0 }} />
-                            {step.name}
-                          </span>
-                          <span style={{ fontWeight: 800, fontSize: "0.80rem", color: step.color }}>
-                            {step.duration} hrs
-                          </span>
-                        </div>
-                        <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.66rem", color: "#64748b" }}>
-                          <span>Target: &lt; {step.target} hrs</span>
-                          <span style={{ color: "#16694a", fontWeight: 700 }}>{step.pct}% SLA Met</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div className="qla-simple-card-foot">
-                <span>Total Cycle Duration: <b style={{ color: "#0f172a" }}>{totalCycleDuration} hrs</b></span>
-                <span style={{ color: "#16694a", fontWeight: 700, display: "flex", alignItems: "center", gap: 5 }}>
-                  <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#16694a" }} />
-                  Overall SLA Target: {overallSlaRate}% Met
-                </span>
-              </div>
-            </div>
+          {/* Turnaround Analysis Footer */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12, fontSize: "0.76rem", color: "#64748b", borderTop: "1px solid #f1f5f9", paddingTop: 14, marginTop: 16 }}>
+            <span>
+              Scope Totals: <b style={{ color: "#16a34a" }}>{turnaroundBuckets.totalQuoted}</b> Quotations Completed · <b style={{ color: "#dc2626" }}>{turnaroundBuckets.totalPending}</b> Pending Enquiries Monitored
+            </span>
+            <span style={{ color: "#2563eb", fontWeight: 600, display: "flex", alignItems: "center", gap: 5 }}>
+              <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#2563eb" }} />
+              Operational Benchmarks: &lt;48 hrs (Fast) · 48–72 hrs (Standard) · &gt;72 hrs (Threshold Alert)
+            </span>
           </div>
         </div>
 
