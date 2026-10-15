@@ -434,105 +434,7 @@ export default function GenerateQuotationModal({ caseId, lines: initialLines, on
             )}
           </div>
 
-          {/* Commercial Terms & Totals Side-by-Side */}
-          <div className="qgm-bottom-grid">
-            {/* Commercial Adjustments */}
-            <div className="qgm-card qgm-terms-card">
-              <div className="qgm-card-header">
-                <h4>Commercial Adjustments</h4>
-                <span className="qgm-card-hint">Discount, taxes and freight charges</span>
-              </div>
-              <div className="qgm-terms-inputs">
-                <div className="qgm-field">
-                  <label>Discount %</label>
-                  <div className="qgm-input-affix-wrap">
-                    <input
-                      type="number"
-                      min="0"
-                      max="100"
-                      step="any"
-                      value={discountPct}
-                      onChange={(e) => setDiscountPct(e.target.value)}
-                      placeholder="0"
-                      className="qgm-input qgm-input-with-suffix"
-                    />
-                    <span className="qgm-affix-suffix">%</span>
-                  </div>
-                </div>
-
-                <div className="qgm-field">
-                  <label>Tax %</label>
-                  <div className="qgm-input-affix-wrap">
-                    <input
-                      type="number"
-                      min="0"
-                      max="100"
-                      step="any"
-                      value={taxPct}
-                      onChange={(e) => setTaxPct(e.target.value)}
-                      placeholder="18"
-                      className="qgm-input qgm-input-with-suffix"
-                    />
-                    <span className="qgm-affix-suffix">%</span>
-                  </div>
-                </div>
-
-                <div className="qgm-field">
-                  <label>Freight (₹)</label>
-                  <div className="qgm-input-affix-wrap">
-                    <span className="qgm-affix-prefix">₹</span>
-                    <input
-                      type="number"
-                      min="0"
-                      step="any"
-                      value={freightAmount}
-                      onChange={(e) => setFreightAmount(e.target.value)}
-                      placeholder="0"
-                      className="qgm-input qgm-input-with-prefix"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Quotation Summary */}
-            <div className="qgm-card qgm-totals-card">
-              <div className="qgm-card-header">
-                <h4>Quotation Summary</h4>
-                <span className="qgm-card-hint">Calculated totals in INR (₹)</span>
-              </div>
-              <div className="qgm-totals-list">
-                <div className="qgm-totals-row">
-                  <span>Subtotal ({lines.length} {lines.length === 1 ? "item" : "items"})</span>
-                  <span className="qgm-amount">{formatCurrency(totals.subtotal)}</span>
-                </div>
-                {Number(totals.discountAmt) > 0 && (
-                  <div className="qgm-totals-row qgm-row-discount">
-                    <span>Discount ({discountPct || 0}%)</span>
-                    <span className="qgm-amount">−{formatCurrency(totals.discountAmt)}</span>
-                  </div>
-                )}
-                <div className="qgm-totals-row">
-                  <span>Tax ({taxPct || 0}%)</span>
-                  <span className="qgm-amount">+{formatCurrency(totals.taxAmt)}</span>
-                </div>
-                {Number(totals.freight) > 0 && (
-                  <div className="qgm-totals-row">
-                    <span>Freight</span>
-                    <span className="qgm-amount">+{formatCurrency(totals.freight)}</span>
-                  </div>
-                )}
-                <div className="qgm-totals-divider" />
-                <div className="qgm-totals-row qgm-grand-total">
-                  <div>
-                    <span className="qgm-grand-label">Grand Total</span>
-                    <span className="qgm-grand-sub">Final quotation value</span>
-                  </div>
-                  <span className="qgm-grand-amount">{formatCurrency(totals.grandTotal)}</span>
-                </div>
-              </div>
-            </div>
-          </div>
+          {/* Commercial Adjustments & Quotation Summary sections hidden as requested without affecting backend pricing wires */}
         </div>
 
         {/* Footer */}
@@ -540,7 +442,7 @@ export default function GenerateQuotationModal({ caseId, lines: initialLines, on
           <div className="qgm-footer-status">
             {hasAllPrices ? (
               <span className="qgm-status-pill qgm-status-ready">
-                <CheckCircle2 size={14} /> Ready to generate
+                <CheckCircle2 size={14} /> Ready to generate ({formatCurrency(totals.subtotal)})
               </span>
             ) : (
               <span className="qgm-status-pill qgm-status-pending">

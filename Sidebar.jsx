@@ -18,10 +18,13 @@ import {
   Database,
   ScrollText,
   KeyRound,
+  FileText,
+  BarChart2,
 } from "lucide-react";
 
 const MAIN_NAV_ITEMS = [
-  { to: "/dashboard", label: "Dashboard", Icon: LayoutDashboard },
+  { to: "/dashboard", label: "Dashboard", Icon: LayoutDashboard, end: true },
+  { to: "/analytics", label: "QLA Analytics", Icon: BarChart2, isSub: true },
   { to: "/", end: true, label: "Review Queue", Icon: ClipboardList },
   { to: "/cases", label: "All Cases", Icon: FolderOpen },
 ];
@@ -30,12 +33,15 @@ const MASTER_NAV_ITEMS = [
   { to: "/master/catalog", label: "Product Catalog", Icon: BookOpen, adminOnly: true },
   { to: "/master/users", label: "Users & Roles", Icon: Users, adminOnly: true },
   { to: "/master/settings", label: "Admin Settings", Icon: Settings, adminOnly: true },
+  { to: "/master/quotation-formats", label: "Quotation Formats", Icon: FileText, adminOnly: true },
 ];
 
 const SUPER_ADMIN_NAV_ITEMS = [
   { to: "/super-admin", end: true, label: "Dashboard", Icon: LayoutDashboard },
+  { to: "/super-admin/analytics", label: "QLA Analytics", Icon: BarChart2, isSub: true },
   { to: "/super-admin/users", label: "Users & Roles", Icon: Users },
   { to: "/super-admin/logs", label: "Logs", Icon: ScrollText },
+  { to: "/master/quotation-formats", label: "Quotation Formats", Icon: FileText },
   { to: "/change-password", label: "Change Password", Icon: KeyRound },
 ];
 
@@ -78,7 +84,7 @@ export default function Sidebar() {
     navigate("/login");
   }
 
-  const isSuperAdminView = location.pathname.startsWith("/super-admin") || user.role === "SUPER_ADMIN";
+  const isSuperAdminView = location.pathname.startsWith("/super-admin") || (user?.role || "").toUpperCase() === "SUPER_ADMIN";
 
   return (
     <>
@@ -166,13 +172,15 @@ export default function Sidebar() {
               <NavLink
                 key={item.to}
                 to={item.to}
-                end
-                className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}
+                end={item.end}
+                className={({ isActive }) =>
+                  `sidebar-link ${item.isSub ? "sidebar-sublink" : ""} ${isActive ? "active" : ""}`
+                }
                 title={desktopCollapsed ? item.label : undefined}
                 onClick={() => setMobileOpen(false)}
               >
                 <span className="sidebar-icon">
-                  <item.Icon size={18} />
+                  <item.Icon size={item.isSub ? 16 : 18} />
                 </span>
                 <span className="sidebar-label">{item.label}</span>
               </NavLink>
@@ -186,12 +194,14 @@ export default function Sidebar() {
                   key={item.to}
                   to={item.to}
                   end={item.end}
-                  className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}
+                  className={({ isActive }) =>
+                    `sidebar-link ${item.isSub ? "sidebar-sublink" : ""} ${isActive ? "active" : ""}`
+                  }
                   title={desktopCollapsed ? item.label : undefined}
                   onClick={() => setMobileOpen(false)}
                 >
                   <span className="sidebar-icon">
-                    <item.Icon size={18} />
+                    <item.Icon size={item.isSub ? 16 : 18} />
                   </span>
                   <span className="sidebar-label">{item.label}</span>
                 </NavLink>

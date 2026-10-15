@@ -8,9 +8,11 @@ import CasesList from "./pages/CasesList";
 import CaseDetail from "./pages/CaseDetail";
 import UsersManagement from "./pages/UsersManagement";
 import Dashboard from "./pages/Dashboard";
+import QlaAnalytics from "./pages/QlaAnalytics";
 import MasterHub from "./pages/master/MasterHub";
 import CatalogManagement from "./pages/master/CatalogManagement";
 import AdminSettings from "./pages/master/AdminSettings";
+import QuotationFormats from "./pages/master/QuotationFormats";
 import ChangePasswordPage from "./pages/master/ChangePasswordPage";
 import SuperAdminDashboard from "./pages/SuperAdminDashboard";
 import SuperAdminLogs from "./pages/SuperAdminLogs";
@@ -140,6 +142,18 @@ function AppRoutes() {
           </RequireAuth>
         }
       />
+      <Route
+        path="/analytics"
+        element={
+          <RequireAuth>
+            <Layout><QlaAnalytics /></Layout>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/dashboard/analytics"
+        element={<Navigate to="/analytics" replace />}
+      />
 
       {/* Master Section Routes */}
       <Route
@@ -147,6 +161,14 @@ function AppRoutes() {
         element={
           <RequireAuth>
             <Layout><SuperAdminDashboard /></Layout>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/super-admin/analytics"
+        element={
+          <RequireAuth>
+            <Layout><QlaAnalytics /></Layout>
           </RequireAuth>
         }
       />
@@ -211,6 +233,14 @@ function AppRoutes() {
         element={
           <RequireAuth>
             <Layout><AdminSettings /></Layout>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/master/quotation-formats"
+        element={
+          <RequireAuth>
+            <Layout><QuotationFormats /></Layout>
           </RequireAuth>
         }
       />
