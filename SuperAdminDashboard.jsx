@@ -2033,7 +2033,7 @@ export default function SuperAdminDashboard() {
                   <h3 className="qla-card-title" style={{ whiteSpace: "nowrap" }}>Enquiry & Quotation Velocity</h3>
                   <span className={`qla-kpi-pill ${periodDeltas.enquiries.isPositive ? "up" : "down"}`} style={{ fontSize: "0.72rem", padding: "3px 8px" }}>
                     {periodDeltas.enquiries.isPositive ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
-                    {periodDeltas.enquiries.text} {periodDeltas.periodLabel}
+                    {periodDeltas.enquiries.text}
                   </span>
                 </div>
 
